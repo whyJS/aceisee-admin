@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'Vue Element Admin',
+  title: '艾思教育-词汇管理系统',
 
   /**
    * @type {boolean} true | false
