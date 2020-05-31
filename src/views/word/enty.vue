@@ -4,7 +4,7 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" :size="size" icon="el-icon-add">添加</el-button>
+        <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加</el-button>
         <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button>
         <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
       </el-col>
@@ -196,6 +196,7 @@ export default {
     // this.getList()
   },
   methods: {
+    //加载列表
     onLoad () {
       this.loading = true;
       console.log(this.page);
@@ -208,13 +209,15 @@ export default {
         this.page.total = data.total;
         this.data = data.records;
         this.loading = false;
-        // this.selectionClear();
+        this.selectionClear();
       });
     },
+    //查询
     searchChange () {
       this.page.currentPage = 1;
       this.onLoad();
     },
+    //重置
     searchReset () {
       this.query = {
         clientId: "",
@@ -230,6 +233,7 @@ export default {
       this.selectionList = [];
       this.$refs.crud.toggleSelection();
     },
+    //删除
     handleDelete () {
       if (this.selectionList.length === 0) {
         this.$message.warning("请选择至少一条数据");
@@ -252,10 +256,18 @@ export default {
           this.$refs.crud.toggleSelection();
         });
     },
-
-    refreshChange () {
-      this.onLoad();
+    // 添加
+    handleAdd () {
+      console.log('添加')
+      this.$router.push({
+        path: '/word/edittype',
+        query: {
+          type: 'add'
+        }
+      })
     },
+
+
 
     // 三级联动选择框
     changeSelect1 (val) {

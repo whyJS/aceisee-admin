@@ -47,6 +47,27 @@ const wordRouter = {
         title: "单词导入重复记录",
         roles: ["admin", "editor"]
       }
+    },
+    {
+      path: "edittype",
+      component: () => import("@/views/word/edit-type"),
+      name: "WordEditType",
+      hidden: true,
+      alwaysShow: false,
+      meta: {
+        title: "单词类型",
+        roles: ["admin", "editor"]
+      }
+    },
+    {
+      path: "edit",
+      hidden: true,
+      component: () => import("@/views/word/edit"),
+      name: "WordEdit",
+      meta: {
+        title: "单词编辑",
+        roles: ["admin", "editor"]
+      }
     }
   ]
 };
