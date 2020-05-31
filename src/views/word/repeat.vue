@@ -93,26 +93,26 @@
       </el-table-column>
 
       <!-- 词根 -->
-      <el-table-column label="词根">
+      <el-table-column label="词性">
         <template slot-scope="scope">
           <span>{{ scope.row }}</span>
         </template>
       </el-table-column>
 
       <!-- 出现频率 -->
-      <el-table-column label="出现频率">
+      <el-table-column label="导入时间	">
         <template slot-scope="scope">
           <span>{{ scope.row }}</span>
         </template>
       </el-table-column>
       <!-- 所属项目 -->
-      <el-table-column label="所属项目">
+      <el-table-column label="状态">
         <template slot-scope="scope">
           <span>{{ scope.row }}</span>
         </template>
       </el-table-column>
       <!-- 发音 -->
-      <el-table-column label="发音">
+      <el-table-column label="操作">
         <template slot-scope="scope">
           <span>{{ scope.row }}</span>
         </template>

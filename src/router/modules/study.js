@@ -17,7 +17,7 @@ const studyRouter = {
       component: () => import("@/views/study/index"),
       name: "StudyAdd",
       meta: {
-        title: "学生管理",
+        title: "添加学生",
         roles: ["admin", "editor"]
       }
     }
