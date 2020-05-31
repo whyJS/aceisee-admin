@@ -124,6 +124,14 @@
         </div>
 
       </div>
+
+      <el-row>
+        <el-col :span="24">
+          <el-button type="primary" :size="size" icon="el-icon-add">开始添加单词</el-button>
+          <el-button type="primary" :size="size" icon="el-icon-edit">导入单词</el-button>
+          <el-button type="danger" :size="size" icon="el-icon-delete">取消</el-button>
+        </el-col>
+      </el-row>
     </div>
 
   </basic-container>
@@ -189,6 +197,7 @@ export default {
   box-sizing: border-box;
   border: 1px solid #a9a9a9;
   margin-bottom: 10px;
+  font-size: 12px;
   .wrapperHeader {
     width: 100%;
     height: 30px;
