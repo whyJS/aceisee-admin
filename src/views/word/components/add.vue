@@ -29,7 +29,7 @@
               </el-input>
             </el-col>
             <el-col :span="8">
-              &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size">选择</el-button>
+              &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size" @click="dialogVisible2 = true">选择</el-button>
             </el-col>
 
           </el-form-item>
@@ -249,6 +249,65 @@
       </span>
     </el-dialog>
 
+    <!-- 选择词根 -->
+    <el-dialog title="选择词根" :visible.sync="dialogVisible2" append-to-body width="60%">
+      <!-- 搜索框 -->
+      <el-row style="margin-top:20px;">
+        <el-col :span="24">
+          <el-form :inline="true" :model="query2" class="demo-form-inline">
+            <el-form-item label="单词拼写：">
+              <el-input :size="size" v-model="query2.a1" placeholder="单词拼写"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" :size="size">查询</el-button>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :size="size">重置</el-button>
+            </el-form-item>
+
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-table :data="data" ref="crud" :header-cell-style="{
+            color: '#333',
+            fontWeight: 700,
+            background: '#f5f5f5'
+          }" row-key="id" border lazy @selection-change="selectionChange">
+        <el-table-column type="selection" width="40"> </el-table-column>
+        <!-- id -->
+        <el-table-column type="index" label="#" width="40">
+
+        </el-table-column>
+
+        <!-- 拼写 -->
+        <el-table-column label="拼写">
+          <template slot-scope="scope">
+            <span>{{ scope.row }}</span>
+          </template>
+        </el-table-column>
+        <!-- 英文解释 -->
+        <el-table-column label="拼写">
+          <template slot-scope="scope">
+            <span>{{ scope.row }}</span>
+          </template>
+        </el-table-column>
+        <!-- 中文解释 -->
+        <el-table-column label="拼写">
+          <template slot-scope="scope">
+            <span>{{ scope.row }}</span>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
+        @pagination="onLoad" />
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible2 = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible2 = false">确 定</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -332,6 +391,7 @@ export default {
           }
         ]
       },
+      // 选择近义词 反义词
       query: {
         a1: '',
         a2: '',
@@ -346,6 +406,22 @@ export default {
       appendToBody: true,
       dialogVisible: false,
       selectionList: [],
+
+      // 选择词根
+      query2: {
+        a1: '',
+        a2: '',
+        a3: ''
+      },
+      data2: [1, 2, 3, 4, 5],
+      page2: {
+        pageSize: 10,
+        currentPage: 1,
+        total: 100
+      },
+      appendToBody2: true,
+      dialogVisible2: false,
+      selectionList2: [],
 
 
       //下拉选

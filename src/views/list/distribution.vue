@@ -1,153 +1,324 @@
 <template>
-  <div class="app-container">
-    <!-- Note that row-key is necessary to get a correct row order. -->
-    <el-table ref="dragTable" v-loading="listLoading" :data="list" row-key="id" border fit highlight-current-row style="width: 100%">
-      <el-table-column align="center" label="ID" width="65">
-        <template slot-scope="{row}">
-          <span>{{ row.id }}</span>
-        </template>
-      </el-table-column>
+  <!-- <div class="app-container"> -->
+  <basic-container>
 
-      <el-table-column width="180px" align="center" label="Date">
-        <template slot-scope="{row}">
-          <span>{{ row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
-        </template>
-      </el-table-column>
+    <!-- 搜索框 -->
+    <el-row style="margin-top:20px;">
+      <el-col :span="24">
+        <el-form :inline="true" :model="query" class="demo-form-inline">
+          <el-form-item label="单词拼写：">
+            <el-input :size="size" v-model="query.chName" placeholder="单词拼写"></el-input>
+          </el-form-item>
 
-      <el-table-column min-width="300px" label="Title">
-        <template slot-scope="{row}">
-          <span>{{ row.title }}</span>
-        </template>
-      </el-table-column>
+          <el-form-item label="所属项目：">
+            <el-select style="width:100px" :size="size" v-model="query.type1" placeholder="请选择"
+              @change="changeSelect1($event)">
+              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
 
-      <el-table-column width="110px" align="center" label="Author">
-        <template slot-scope="{row}">
-          <span>{{ row.author }}</span>
-        </template>
-      </el-table-column>
+          <el-form-item label="所属课程：">
+            <el-select style="width:100px" :size="size" v-model="query.type2" placeholder="请选择"
+              @change="changeSelect2($event)">
+              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.id">
+              </el-option>
+            </el-select>
 
-      <el-table-column width="100px" label="Importance">
-        <template slot-scope="{row}">
-          <svg-icon v-for="n in + row.importance" :key="n" icon-class="star" class="icon-star" />
-        </template>
-      </el-table-column>
+          </el-form-item>
 
-      <el-table-column align="center" label="Readings" width="95">
-        <template slot-scope="{row}">
-          <span>{{ row.pageviews }}</span>
-        </template>
-      </el-table-column>
+          <el-form-item label=" 所属类型：">
+            <el-select style="width:100px" :size="size" v-model="query.type3" placeholder="请选择"
+              @change="changeSelect3($event)">
+              <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
 
-      <el-table-column class-name="status-col" label="Status" width="110">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
-          </el-tag>
-        </template>
-      </el-table-column>
+          <el-form-item>
+            <el-button type="primary" :size="size">查询</el-button>
+          </el-form-item>
 
-      <el-table-column align="center" label="Drag" width="80">
-        <template slot-scope="{}">
-          <svg-icon class="drag-handler" icon-class="drag" />
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="show-d">
-      <el-tag>The default order :</el-tag> {{ oldList }}
-    </div>
-    <div class="show-d">
-      <el-tag>The after dragging order :</el-tag> {{ newList }}
-    </div>
-  </div>
+        </el-form>
+      </el-col>
+    </el-row>
+    <el-row :gutter="20">
+      <el-col :span="8">
+        <!-- 列表 -->
+        <el-table :data="data" ref="crud" :header-cell-style="{
+            color: '#333',
+            fontWeight: 700,
+            background: '#f5f5f5'
+          }" row-key="id" border>
+
+          <!-- 选择学生 -->
+          <el-table-column label="选择学生" align="center">
+            <template slot-scope="scope">
+              <span>{{ scope.row }}</span>
+            </template>
+          </el-table-column>
+
+        </el-table>
+        <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage"
+          :limit.sync="page.pageSize" @pagination="onLoad" />
+      </el-col>
+
+      <el-col :span="10">
+        <!-- 列表 -->
+        <el-table :data="data" ref="crud" :header-cell-style="{
+            color: '#333',
+            fontWeight: 700,
+            background: '#f5f5f5'
+          }" row-key="id" border lazy>
+
+          <!-- 拼写 -->
+          <el-table-column align="center" label="拼写">
+            <template slot="header" slot-scope="scope">
+              <el-input size="mini" placeholder="输入关键字搜索" />
+            </template>
+            <el-table-column label="名称">
+              <template slot-scope="scope">
+                <span>{{ scope.row }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="单词数量">
+              <template slot-scope="scope">
+                <span>{{ scope.row }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="允许错误数量">
+              <template slot-scope="scope">
+                <span>{{ scope.row }}</span>
+              </template>
+            </el-table-column>
+          </el-table-column>
+
+        </el-table>
+
+      </el-col>
+
+      <el-col :span="6">
+        <!-- 列表 -->
+        <el-table :data="data" ref="crud" :header-cell-style="{
+            color: '#333',
+            fontWeight: 700,
+            background: '#f5f5f5'
+          }" row-key="id" border>
+
+          <!-- 拼写 -->
+          <el-table-column label="已分配list" align="center">
+            <template slot-scope="scope">
+              <span>{{ scope.row }}</span>
+            </template>
+          </el-table-column>
+
+        </el-table>
+
+      </el-col>
+
+    </el-row>
+
+  </basic-container>
+  <!-- </div> -->
 </template>
 
 <script>
-import { fetchList } from '@/api/article'
-import Sortable from 'sortablejs'
-
+import { getList } from '@/api/word'
+import Pagination from '@/components/Pagination/index2' // secondary package based on el-pagination
 export default {
-  name: 'DragTable',
+  name: 'ComplexTable',
+  components: { Pagination },
   filters: {
-    statusFilter(status) {
-      const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
-      }
-      return statusMap[status]
-    }
+
   },
-  data() {
+  data () {
     return {
-      list: null,
-      total: null,
-      listLoading: true,
-      listQuery: {
-        page: 1,
-        limit: 10
+      size: 'mini',
+      //下拉选
+      select1: [{
+        name: 'select',
+        id: 1
       },
-      sortable: null,
-      oldList: [],
-      newList: []
+      {
+        name: 'select',
+        id: 2
+      }],
+      select2: [],
+      select3: [],
+      select4: [{
+        name: '全部',
+        id: 1
+      },
+      {
+        name: 'select',
+        id: 2
+      }],
+      select5: [{
+        name: '全部',
+        id: 1
+      },
+      {
+        name: 'select',
+        id: 2
+      }],
+      //参数
+      query: {
+        chName: "",
+        type1: "",
+        type2: "",
+        type3: "",
+        type4: "",
+        type5: "",
+      },
+
+      //列表
+      data: [1, 2, 3, 4, 5, 6],
+      page: {
+        pageSize: 10,
+        currentPage: 1,
+        total: 100
+      },
+      selectionList: [],
+
     }
   },
-  created() {
-    this.getList()
+  computed: {
+    ids () {
+      let ids = [];
+      this.selectionList.forEach(ele => {
+        ids.push(ele.id);
+      });
+      return ids.join(",");
+    },
+  },
+  created () {
+    // this.getList()
   },
   methods: {
-    async getList() {
-      this.listLoading = true
-      const { data } = await fetchList(this.listQuery)
-      this.list = data.items
-      this.total = data.total
-      this.listLoading = false
-      this.oldList = this.list.map(v => v.id)
-      this.newList = this.oldList.slice()
-      this.$nextTick(() => {
-        this.setSort()
+    //加载列表
+    onLoad () {
+      this.loading = true;
+      console.log(this.page);
+      getList(
+        this.page.currentPage,
+        this.page.pageSize,
+        Object.assign({}, this.query)
+      ).then(res => {
+        const data = res.data.data;
+        this.page.total = data.total;
+        this.data = data.records;
+        this.loading = false;
+        this.selectionClear();
+      });
+    },
+    //查询
+    searchChange () {
+      this.page.currentPage = 1;
+      this.onLoad();
+    },
+    //重置
+    searchReset () {
+      this.query = {
+        clientId: "",
+        clientSecret: ""
+      }
+      this.onLoad();
+    },
+
+    selectionChange (list) {
+      this.selectionList = list;
+    },
+    selectionClear () {
+      this.selectionList = [];
+      this.$refs.crud.toggleSelection();
+    },
+    //删除
+    handleDelete () {
+      if (this.selectionList.length === 0) {
+        this.$message.warning("请选择至少一条数据");
+        return;
+      }
+      this.$confirm("确定将选择数据删除?", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          // return remove(this.ids);
+        })
+        .then(() => {
+          this.onLoad(this.page);
+          this.$message({
+            type: "success",
+            message: "操作成功!"
+          });
+          this.$refs.crud.toggleSelection();
+        });
+    },
+
+
+
+
+    // 三级联动选择框
+    changeSelect1 (val) {
+      console.log(val)
+      this.query.type1 = val
+      this.query.type2 = ''
+      this.query.type3 = ''
+      this.select2 = []
+      this.select3 = []
+      setTimeout(() => {
+        this.select2 = [
+          {
+            name: 'select2',
+            id: 1
+          },
+          {
+            name: 'select2',
+            id: 2
+          }, {
+            name: 'select2',
+            id: 3
+          }
+        ]
       })
     },
-    setSort() {
-      const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
-      this.sortable = Sortable.create(el, {
-        ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
-        setData: function(dataTransfer) {
-          // to avoid Firefox bug
-          // Detail see : https://github.com/RubaXa/Sortable/issues/1012
-          dataTransfer.setData('Text', '')
-        },
-        onEnd: evt => {
-          const targetRow = this.list.splice(evt.oldIndex, 1)[0]
-          this.list.splice(evt.newIndex, 0, targetRow)
-
-          // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-          this.newList.splice(evt.newIndex, 0, tempIndex)
-        }
+    changeSelect2 (val) {
+      console.log(val)
+      this.query.type2 = val
+      this.query.type3 = ''
+      this.select3 = []
+      setTimeout(() => {
+        this.select3 = [
+          {
+            name: 'select3',
+            id: 1
+          },
+          {
+            name: 'select3',
+            id: 2
+          }, {
+            name: 'select3',
+            id: 3
+          }
+        ]
       })
-    }
-  }
+    },
+    changeSelect3 (val) {
+      console.log(val)
+      this.type3 = val
+    },
+
+    // 添加
+    handleAdd () {
+      console.log('添加')
+      this.adddrawer = true;
+    },
+    // 关闭弹框
+    closeView () {
+      this.$refs.detailDrawer.closeDrawer();
+      this.adddrawer = false;
+    },
+  },
 }
 </script>
-
-<style>
-.sortable-ghost{
-  opacity: .8;
-  color: #fff!important;
-  background: #42b983!important;
-}
-</style>
-
-<style scoped>
-.icon-star{
-  margin-right:2px;
-}
-.drag-handler{
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-.show-d{
-  margin-top: 15px;
-}
-</style>

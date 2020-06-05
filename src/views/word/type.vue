@@ -4,7 +4,7 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" :size="size" icon="el-icon-add">添加</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-add" @click="dialogVisible = true">添加</el-button>
         <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button>
         <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
       </el-col>
@@ -88,6 +88,58 @@
     </el-table>
     <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
       @pagination="onLoad" />
+
+    <el-dialog title="添加单词类型" :visible.sync="dialogVisible" append-to-body width="60%">
+      <!-- 搜索框 -->
+      <el-row style="margin-top:20px;">
+        <el-col :span="24">
+          <el-form :model="query2" class="demo-form-inline" label-width="100px">
+            <el-col :span="24">
+              <el-form-item label="类型名称：">
+                <el-input :size="size" v-model="query2.a1" placeholder="单词拼写"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="所属项目：">
+                <el-select style="width:100%" :size="size" v-model="query.type1" placeholder="请选择"
+                  @change="changeSelect1($event)">
+                  <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="所属课程：">
+                <el-select style="width:100%" :size="size" v-model="query.type2" placeholder="请选择"
+                  @change="changeSelect2($event)">
+                  <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="所属课程：">
+                <el-radio-group v-model="query2.a2">
+                  <el-radio :label="3">备选项</el-radio>
+                  <el-radio :label="6">备选项</el-radio>
+                  <el-radio :label="9">备选项</el-radio>
+                </el-radio-group>
+                &nbsp; &nbsp; &nbsp;<el-checkbox v-model="query2.a3">备选项</el-checkbox>
+
+              </el-form-item>
+            </el-col>
+
+          </el-form>
+        </el-col>
+      </el-row>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </basic-container>
   <!-- </div> -->
 </template>
@@ -132,6 +184,13 @@ export default {
         total: 100
       },
       selectionList: [],
+
+      query2: {
+        a1: '',
+        a2: '',
+        a3: ''
+      },
+      dialogVisible: false
     }
   },
   computed: {

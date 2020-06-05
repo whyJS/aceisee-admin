@@ -4,8 +4,8 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" :size="size" icon="el-icon-add">添加</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-add" @click="dialogVisible=true">添加</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-edit" @click="dialogVisible=true">编辑</el-button>
         <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
       </el-col>
     </el-row>
@@ -63,6 +63,37 @@
     </el-table>
     <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
       @pagination="onLoad" />
+
+    <el-dialog title="添加词根" :visible.sync="dialogVisible" append-to-body width="60%">
+      <!-- 搜索框 -->
+      <el-row style="margin-top:20px;">
+        <el-col :span="24">
+          <el-form :model="query2" class="demo-form-inline">
+            <el-col :span="24">
+              <el-form-item label="单词拼写：">
+                <el-input :size="size" v-model="query2.a1" placeholder="单词拼写"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="中文释义">
+                <el-input type="textarea" v-model="query2.a1"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="英文释义	">
+                <el-input type="textarea" v-model="query2.a1"></el-input>
+              </el-form-item>
+            </el-col>
+
+          </el-form>
+        </el-col>
+      </el-row>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </basic-container>
   <!-- </div> -->
 </template>
@@ -98,7 +129,13 @@ export default {
         total: 100
       },
       selectionList: [],
+
+      query2: {
+        a1: ''
+      },
+      dialogVisible: false
     }
+
   },
   computed: {
     ids () {
