@@ -4,8 +4,9 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button>
+        <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加单词</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-add">导入单词</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-edit">编辑单词</el-button>
         <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
       </el-col>
     </el-row>
@@ -121,6 +122,14 @@
     </el-table>
     <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
       @pagination="onLoad" />
+
+    <!-- 添加 -->
+    <el-drawer ref="detailDrawer" :title="isEditTitle" :visible.sync="adddrawer" :destroy-on-close="destroyOnClose"
+      direction="rtl" :append-to-body="appendToBody" size="80%">
+      <word-add @closeView="closeView">
+      </word-add>
+    </el-drawer>
+
   </basic-container>
   <!-- </div> -->
 </template>
@@ -128,16 +137,17 @@
 <script>
 import { getList } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-
+import WordAdd from "./components/add";
 export default {
   name: 'ComplexTable',
-  components: { Pagination },
+  components: { Pagination, WordAdd },
   filters: {
 
   },
   data () {
     return {
       size: 'mini',
+      //下拉选
       select1: [{
         name: 'select',
         id: 1
@@ -164,7 +174,8 @@ export default {
         name: 'select',
         id: 2
       }],
-      query: {//参数
+      //参数
+      query: {
         chName: "",
         type1: "",
         type2: "",
@@ -173,14 +184,20 @@ export default {
         type5: "",
       },
 
-
-      data: [1, 2, 3, 4, 5, 6], //列表
+      //列表
+      data: [1, 2, 3, 4, 5, 6],
       page: {
         pageSize: 10,
         currentPage: 1,
         total: 100
       },
       selectionList: [],
+
+      // 添加
+      adddrawer: false,
+      appendToBody: true,
+      destroyOnClose: true,
+      isEditTitle: '添加单词',
     }
   },
   computed: {
@@ -256,16 +273,7 @@ export default {
           this.$refs.crud.toggleSelection();
         });
     },
-    // 添加
-    handleAdd () {
-      console.log('添加')
-      this.$router.push({
-        path: '/word/edittype',
-        query: {
-          type: 'add'
-        }
-      })
-    },
+
 
 
 
@@ -317,6 +325,17 @@ export default {
     changeSelect3 (val) {
       console.log(val)
       this.type3 = val
+    },
+
+    // 添加
+    handleAdd () {
+      console.log('添加')
+      this.adddrawer = true;
+    },
+    // 关闭弹框
+    closeView () {
+      this.$refs.detailDrawer.closeDrawer();
+      this.adddrawer = false;
     },
   },
 }
