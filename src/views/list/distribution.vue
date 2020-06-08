@@ -43,9 +43,9 @@
       </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="8">
+      <el-col :span="5" class="listLeft">
         <!-- 列表 -->
-        <el-table :data="data" ref="crud" :header-cell-style="{
+        <el-table :data="data" highlight-current-row @row-click="btn" ref="crud" :header-cell-style="{
             color: '#333',
             fontWeight: 700,
             background: '#f5f5f5'
@@ -54,7 +54,7 @@
           <!-- 选择学生 -->
           <el-table-column label="选择学生" align="center">
             <template slot-scope="scope">
-              <span>{{ scope.row }}</span>
+              <div class="study">{{ scope.row }}</div>
             </template>
           </el-table-column>
 
@@ -63,19 +63,22 @@
           :limit.sync="page.pageSize" @pagination="onLoad" />
       </el-col>
 
-      <el-col :span="10">
+      <el-col :span="13">
         <!-- 列表 -->
         <el-table :data="data" ref="crud" :header-cell-style="{
             color: '#333',
             fontWeight: 700,
             background: '#f5f5f5'
-          }" row-key="id" border lazy>
+          }" row-key="id" border lazy @selection-change="selectionChange">
 
           <!-- 拼写 -->
           <el-table-column align="center" label="拼写">
             <template slot="header" slot-scope="scope">
-              <el-input size="mini" placeholder="输入关键字搜索" />
+              通过比例：
+              <el-input style="width:50px;" size="mini" />
+              <el-button size="mini" type="primary">设置</el-button>
             </template>
+            <el-table-column align="center" fixed="left" type="selection" width="40"> </el-table-column>
             <el-table-column label="名称">
               <template slot-scope="scope">
                 <span>{{ scope.row }}</span>
@@ -94,6 +97,9 @@
           </el-table-column>
 
         </el-table>
+        <div style="width:100%;text-align:center;padding-top:10px;">
+          <el-button style="width:100%" type="primary">添加</el-button>
+        </div>
 
       </el-col>
 
@@ -103,8 +109,8 @@
             color: '#333',
             fontWeight: 700,
             background: '#f5f5f5'
-          }" row-key="id" border>
-
+          }" row-key="id" border @selection-change="selectionChange">
+          <el-table-column align="center" fixed="left" type="selection" width="40"> </el-table-column>
           <!-- 拼写 -->
           <el-table-column label="已分配list" align="center">
             <template slot-scope="scope">
@@ -113,6 +119,10 @@
           </el-table-column>
 
         </el-table>
+
+        <div style="width:100%;text-align:center;padding-top:10px;">
+          <el-button style="width:100%" type="danger">删除</el-button>
+        </div>
 
       </el-col>
 
@@ -230,7 +240,6 @@ export default {
     },
     selectionClear () {
       this.selectionList = [];
-      this.$refs.crud.toggleSelection();
     },
     //删除
     handleDelete () {
@@ -319,6 +328,38 @@ export default {
       this.$refs.detailDrawer.closeDrawer();
       this.adddrawer = false;
     },
+
+
+    //选择学生
+    btn (row, col, event) {
+      console.log(row)
+      console.log(col)
+      console.log(event)
+    }
   },
 }
 </script>
+<style lang="scss" scoped>
+.study {
+  width: 100%;
+  text-align: left;
+}
+</style>
+
+<style lang="scss">
+.listLeft {
+  height: calc(100vh - 500px);
+  overflow: auto;
+  /* 用来设置当前页面element全局table 选中某行时的背景色*/
+  .el-table__body tr.current-row > td {
+    background-color: #409eff !important;
+    color: #fff;
+  }
+  /* 用来设置当前页面element全局table 鼠标移入某行时的背景色*/
+  .el-table--enable-row-hover .el-table__body tr:hover > td {
+    background-color: #409eff;
+    /* color: #f19944; */ /* 设置文字颜色，可以选择不设置 */
+    color: #fff;
+  }
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
   <div :class="{'hidden':hidden}" class="pagination-container">
-    <el-pagination size="mini" :background="background" :page-size.sync="pageSize" layout="prev, pager, next"
+    <el-pagination small size="mini" :background="background" :page-size.sync="pageSize" layout="prev, pager, next"
       :page-sizes="pageSizes" :total="total" v-bind="$attrs" />
   </div>
 </template>
