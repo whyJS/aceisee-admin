@@ -2,7 +2,7 @@
 const path = require('path')
 const defaultSettings = require('./src/settings.js')
 
-function resolve(dir) {
+function resolve (dir) {
   return path.join(__dirname, dir)
 }
 
@@ -31,12 +31,22 @@ module.exports = {
   productionSourceMap: false,
   devServer: {
     port: port,
-    open: true,
-    overlay: {
-      warnings: false,
-      errors: true
-    },
-    before: require('./mock/mock-server.js')
+
+    proxy: {
+      "/api": {
+        //本地服务接口地址
+        target: "http://platform.guozunfugui.com/aceisee", //测试
+        // target: "http://192.168.2.9:8001", //刘玉宝
+        // target: "http://192.168.2.161:8001", //乔鹏
+        // target: "http://192.168.2.42:8001",
+        //远程演示服务地址,可用于直接启动项目
+        // target: "https://saber.bladex.vip/api",
+        ws: true,
+        pathRewrite: {
+          "^/api": "/"
+        }
+      }
+    }
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
@@ -48,7 +58,7 @@ module.exports = {
       }
     }
   },
-  chainWebpack(config) {
+  chainWebpack (config) {
     config.plugins.delete('preload') // TODO: need test
     config.plugins.delete('prefetch') // TODO: need test
 
@@ -87,7 +97,7 @@ module.exports = {
             .plugin('ScriptExtHtmlWebpackPlugin')
             .after('html')
             .use('script-ext-html-webpack-plugin', [{
-            // `runtime` must same as runtimeChunk name. default is `runtime`
+              // `runtime` must same as runtimeChunk name. default is `runtime`
               inline: /runtime\..*\.js$/
             }])
             .end()

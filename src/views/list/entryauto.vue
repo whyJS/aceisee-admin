@@ -37,13 +37,7 @@
         <template slot-scope="{row}">
           <template v-if="row.edit">
             <el-input v-model="row.title" class="edit-input" size="small" />
-            <el-button
-              class="cancel-btn"
-              size="small"
-              icon="el-icon-refresh"
-              type="warning"
-              @click="cancelEdit(row)"
-            >
+            <el-button class="cancel-btn" size="small" icon="el-icon-refresh" type="warning" @click="cancelEdit(row)">
               cancel
             </el-button>
           </template>
@@ -53,22 +47,11 @@
 
       <el-table-column align="center" label="Actions" width="120">
         <template slot-scope="{row}">
-          <el-button
-            v-if="row.edit"
-            type="success"
-            size="small"
-            icon="el-icon-circle-check-outline"
-            @click="confirmEdit(row)"
-          >
+          <el-button v-if="row.edit" type="success" size="small" icon="el-icon-circle-check-outline"
+            @click="confirmEdit(row)">
             Ok
           </el-button>
-          <el-button
-            v-else
-            type="primary"
-            size="small"
-            icon="el-icon-edit"
-            @click="row.edit=!row.edit"
-          >
+          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click="row.edit=!row.edit">
             Edit
           </el-button>
         </template>
@@ -78,12 +61,12 @@
 </template>
 
 <script>
-import { fetchList } from '@/api/article'
+// import { fetchList } from '@/api/list'
 
 export default {
   name: 'InlineEditTable',
   filters: {
-    statusFilter(status) {
+    statusFilter (status) {
       const statusMap = {
         published: 'success',
         draft: 'info',
@@ -92,7 +75,7 @@ export default {
       return statusMap[status]
     }
   },
-  data() {
+  data () {
     return {
       list: null,
       listLoading: true,
@@ -102,22 +85,22 @@ export default {
       }
     }
   },
-  created() {
+  created () {
     this.getList()
   },
   methods: {
-    async getList() {
-      this.listLoading = true
-      const { data } = await fetchList(this.listQuery)
-      const items = data.items
-      this.list = items.map(v => {
-        this.$set(v, 'edit', false) // https://vuejs.org/v2/guide/reactivity.html
-        v.originalTitle = v.title //  will be used when user click the cancel botton
-        return v
-      })
-      this.listLoading = false
+    async getList () {
+      // this.listLoading = true
+      // const { data } = await fetchList(this.listQuery)
+      // const items = data.items
+      // this.list = items.map(v => {
+      //   this.$set(v, 'edit', false) // https://vuejs.org/v2/guide/reactivity.html
+      //   v.originalTitle = v.title //  will be used when user click the cancel botton
+      //   return v
+      // })
+      // this.listLoading = false
     },
-    cancelEdit(row) {
+    cancelEdit (row) {
       row.title = row.originalTitle
       row.edit = false
       this.$message({
@@ -125,7 +108,7 @@ export default {
         type: 'warning'
       })
     },
-    confirmEdit(row) {
+    confirmEdit (row) {
       row.edit = false
       row.originalTitle = row.title
       this.$message({

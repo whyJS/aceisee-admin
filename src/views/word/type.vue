@@ -14,31 +14,31 @@
       <el-col :span="24">
         <el-form :inline="true" :model="query" class="demo-form-inline">
           <el-form-item label="单词拼写：">
-            <el-input :size="size" v-model="query.chName" placeholder="单词拼写"></el-input>
+            <el-input :size="size" v-model="query.name" placeholder="单词拼写"></el-input>
           </el-form-item>
 
           <el-form-item label="所属项目：">
-            <el-select style="width:100px" :size="size" v-model="query.type1" placeholder="请选择"
+            <el-select style="width:100px" :size="size" v-model="query.c1" placeholder="请选择"
               @change="changeSelect1($event)">
-              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.id">
+              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
           </el-form-item>
 
           <el-form-item label="所属课程：">
-            <el-select style="width:100px" :size="size" v-model="query.type2" placeholder="请选择"
+            <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择"
               @change="changeSelect2($event)">
-              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.id">
+              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
 
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" :size="size">查询</el-button>
+            <el-button type="primary" @click="searchChange" :size="size">查询</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :size="size">重置</el-button>
+            <el-button type="primary" @click="searchReset" :size="size">重置</el-button>
           </el-form-item>
 
         </el-form>
@@ -86,24 +86,24 @@
       </el-table-column>
 
     </el-table>
-    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
+    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.pageNum" :limit.sync="page.pageSize"
       @pagination="onLoad" />
 
     <el-dialog title="添加单词类型" :visible.sync="dialogVisible" append-to-body width="60%">
       <!-- 搜索框 -->
       <el-row style="margin-top:20px;">
         <el-col :span="24">
-          <el-form :model="query2" class="demo-form-inline" label-width="100px">
+          <el-form :model="form" class="demo-form-inline" label-width="100px">
             <el-col :span="24">
               <el-form-item label="类型名称：">
-                <el-input :size="size" v-model="query2.a1" placeholder="单词拼写"></el-input>
+                <el-input :size="size" v-model="form.name" placeholder="单词拼写"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="24">
               <el-form-item label="所属项目：">
-                <el-select style="width:100%" :size="size" v-model="query.type1" placeholder="请选择"
+                <el-select style="width:100%" :size="size" v-model="form.code" placeholder="请选择"
                   @change="changeSelect1($event)">
-                  <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.id">
+                  <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
                   </el-option>
                 </el-select>
               </el-form-item>
@@ -111,15 +111,15 @@
             </el-col>
             <el-col :span="24">
               <el-form-item label="所属课程：">
-                <el-select style="width:100%" :size="size" v-model="query.type2" placeholder="请选择"
+                <el-select style="width:100%" :size="size" v-model="form.pCode" placeholder="请选择"
                   @change="changeSelect2($event)">
-                  <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.id">
+                  <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
                   </el-option>
                 </el-select>
 
               </el-form-item>
             </el-col>
-            <el-col :span="24">
+            <!-- <el-col :span="24">
               <el-form-item label="所属课程：">
                 <el-radio-group v-model="query2.a2">
                   <el-radio :label="3">备选项</el-radio>
@@ -129,7 +129,7 @@
                 &nbsp; &nbsp; &nbsp;<el-checkbox v-model="query2.a3">备选项</el-checkbox>
 
               </el-form-item>
-            </el-col>
+            </el-col> -->
 
           </el-form>
         </el-col>
@@ -145,7 +145,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/word'
+import { getCategorysearchList, getCategoryList, addCat, deleCat } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 export default {
@@ -157,38 +157,26 @@ export default {
   data () {
     return {
       size: 'mini',
-      select1: [{
-        name: 'select',
-        id: 1
-      },
-      {
-        name: 'select',
-        id: 2
-      }],
-      select2: [],
-
+      select1: [],//一级分类
+      select2: [],//二级分类
       query: {//参数
-        chName: "",
-        type1: "",
-        type2: "",
-        type3: "",
-        type4: "",
-        type5: "",
+        name: "",
+        c1: "",
+        c2: ""
       },
 
-
-      data: [1, 2, 3, 4, 5, 6], //列表
+      data: [], //列表
       page: {
         pageSize: 10,
-        currentPage: 1,
-        total: 100
+        pageNum: 1,
+        total: 0
       },
       selectionList: [],
 
-      query2: {
-        a1: '',
-        a2: '',
-        a3: ''
+      form: {//新增，编辑
+        code: "",
+        pCode: "",
+        name: ""
       },
       dialogVisible: false
     }
@@ -197,49 +185,77 @@ export default {
     ids () {
       let ids = [];
       this.selectionList.forEach(ele => {
-        ids.push(ele.id);
+        ids.push(ele.code);
       });
       return ids.join(",");
     },
   },
   created () {
-    // this.getList()
+    this.onLoad()
+    this._getCategoryList("")
   },
   methods: {
     onLoad () {
-      this.loading = true;
-      console.log(this.page);
-      getList(
-        this.page.currentPage,
+      getCategorysearchList(
+        this.page.pageNum,
         this.page.pageSize,
         Object.assign({}, this.query)
       ).then(res => {
-        const data = res.data.data;
-        this.page.total = data.total;
-        this.data = data.records;
-        this.loading = false;
-        // this.selectionClear();
+        const data = res.data;
+        this.page.total = data.totalNum;
+        this.data = data.content;
+        this.selectionClear()
       });
     },
+    //查询
     searchChange () {
-      this.page.currentPage = 1;
+      this.page.pageNum = 1;
       this.onLoad();
     },
+    //重置
     searchReset () {
-      this.query = {
-        clientId: "",
-        clientSecret: ""
+      this.query = {//参数
+        name: "",
+        c1: "",
+        c2: ""
       }
+
       this.onLoad();
     },
-
+    //选择列表
     selectionChange (list) {
       this.selectionList = list;
     },
     selectionClear () {
       this.selectionList = [];
-      this.$refs.crud.toggleSelection();
     },
+
+    //新增
+    handleAdd () {
+      if (this.selectionList.length === 0) {
+        this.$message.warning("请选择至少一条数据");
+        return;
+      }
+      this.$confirm("确定将选择数据删除?", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          // return remove(this.ids);
+        })
+        .then(() => {
+          this.data = [];
+          this.onLoad();
+          this.$message({
+            type: "success",
+            message: "操作成功!"
+          });
+
+        });
+    },
+
+    //删除列表
     handleDelete () {
       if (this.selectionList.length === 0) {
         this.$message.warning("请选择至少一条数据");
@@ -254,46 +270,32 @@ export default {
           // return remove(this.ids);
         })
         .then(() => {
-          this.onLoad(this.page);
+          this.data = [];
+          this.onLoad();
           this.$message({
             type: "success",
             message: "操作成功!"
           });
-          this.$refs.crud.toggleSelection();
+
         });
     },
 
-    refreshChange () {
-      this.onLoad();
+    // 类别选择框选择框
+    _getCategoryList (code) {
+      getCategoryList(code).then((res) => {
+        this.select1 = res.data
+      })
     },
-
-    // 三级联动选择框
     changeSelect1 (val) {
-      console.log(val)
-      this.query.type1 = val
-      this.query.type2 = ''
+      this.query.c1 = val
+      this.query.c2 = ''
       this.select2 = []
-
-      setTimeout(() => {
-        this.select2 = [
-          {
-            name: 'select2',
-            id: 1
-          },
-          {
-            name: 'select2',
-            id: 2
-          }, {
-            name: 'select2',
-            id: 3
-          }
-        ]
+      getCategoryList(val).then((res) => {
+        this.select2 = res.data
       })
     },
     changeSelect2 (val) {
-      console.log(val)
-      this.query.type2 = val
-
+      this.query.c2 = val
     },
 
   },

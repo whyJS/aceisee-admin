@@ -1,5 +1,5 @@
-import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { login, getInfo } from '@/api/user'
+import { getToken, setToken, removeToken, getUserInfo, setUserInfo, removeUserInfo } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
 const state = {
@@ -7,7 +7,8 @@ const state = {
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  roles: [],
+  userInfo: getUserInfo()
 }
 
 const mutations = {
@@ -25,18 +26,25 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
-  }
+  },
+  SET_USER_INFO: (state, userInfo) => {
+    state.userInfo = userInfo
+  },
 }
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
+  login ({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ username: username.trim(), pwd: password }).then(response => {
+        console.log(response)
         const { data } = response
         commit('SET_TOKEN', data.token)
+        commit('SET_USER_INFO', data)
+        commit('SET_NAME', data.nickName)
         setToken(data.token)
+        setUserInfo(data)
         resolve()
       }).catch(error => {
         reject(error)
@@ -45,27 +53,28 @@ const actions = {
   },
 
   // get user info
-  getInfo({ commit, state }) {
+  getInfo ({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
-
+        console.log(data)
         if (!data) {
-          reject('Verification failed, please Login again.')
+          reject('获取角色失败！！')
         }
-
-        const { roles, name, avatar, introduction } = data
-
         // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
+        if (data.length <= 0) {
+          reject('获取角色失败！！')
         }
-
+        let roles = []
+        data.forEach(item => {
+          roles.push(item.roleCode)
+        });
+        if (!roles || roles.length <= 0) {
+          reject('获取角色失败！！！')
+        }
         commit('SET_ROLES', roles)
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
-        resolve(data)
+
+        resolve(roles)
       }).catch(error => {
         reject(error)
       })
@@ -73,27 +82,39 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state, dispatch }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+  logout ({ commit, state, dispatch }) {
+    console.log(state)
+    return new Promise((resolve) => {
+      setTimeout(() => {
         commit('SET_TOKEN', '')
+        commit('SET_USER_INFO', null)
         commit('SET_ROLES', [])
         removeToken()
+        removeUserInfo()
         resetRouter()
-
-        // reset visited views and cached views
-        // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
         dispatch('tagsView/delAllViews', null, { root: true })
 
         resolve()
-      }).catch(error => {
-        reject(error)
-      })
+      }, 10)
+
+      // logout(state.token).then(() => {
+      //   commit('SET_TOKEN', '')
+      //   commit('SET_USER_INFO', null)
+      //   commit('SET_ROLES', [])
+      //   removeToken()
+      //   removeUserInfo()
+      //   resetRouter()
+      //   dispatch('tagsView/delAllViews', null, { root: true })
+
+      //   resolve()
+      // }).catch(error => {
+      //   reject(error)
+      // })
     })
   },
 
   // remove token
-  resetToken({ commit }) {
+  resetToken ({ commit }) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
@@ -103,7 +124,7 @@ const actions = {
   },
 
   // dynamically modify permissions
-  changeRoles({ commit, dispatch }, role) {
+  changeRoles ({ commit, dispatch }, role) {
     return new Promise(async resolve => {
       const token = role + '-token'
 
