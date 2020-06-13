@@ -4,9 +4,9 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" :size="size" icon="el-icon-add" @click="dialogVisible=true">添加</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-edit" @click="dialogVisible=true">编辑</el-button>
-        <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-add" @click="handleClick(0)">添加</el-button>
+        <!-- <el-button type="primary" :size="size" icon="el-icon-edit" @click="dialogVisible=true">编辑</el-button> -->
+        <el-button type="danger" :size="size" icon="el-icon-delete" @click="handleDelete">删除</el-button>
       </el-col>
     </el-row>
     <!-- 搜索框 -->
@@ -14,13 +14,13 @@
       <el-col :span="24">
         <el-form :inline="true" :model="query" class="demo-form-inline">
           <el-form-item label="词根拼写：">
-            <el-input :size="size" v-model="query.chName" placeholder="词根拼写"></el-input>
+            <el-input :size="size" v-model="query.search" placeholder="词根拼写"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :size="size">查询</el-button>
+            <el-button type="primary" @click="searchChange" :size="size">查询</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :size="size">重置</el-button>
+            <el-button type="primary" @click="searchReset" :size="size">重置</el-button>
           </el-form-item>
 
         </el-form>
@@ -42,46 +42,52 @@
       <!-- 拼写 -->
       <el-table-column label="拼写">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
       <!-- 英文解释 -->
       <el-table-column label="英文解释">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.zhDesc }}</span>
         </template>
       </el-table-column>
 
       <!-- 中文解释 -->
       <el-table-column label="英文解释">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.enDesc }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 中文解释 -->
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" icon="el-icon-edit" size="small" @click="handleClick(1, scope.row)">编辑</el-button>
         </template>
       </el-table-column>
 
     </el-table>
-    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
+    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.pageNum" :limit.sync="page.pageSize"
       @pagination="onLoad" />
 
     <el-dialog title="添加词根" :visible.sync="dialogVisible" append-to-body width="60%">
-      <!-- 搜索框 -->
       <el-row style="margin-top:20px;">
         <el-col :span="24">
-          <el-form :model="query2" class="demo-form-inline">
+          <el-form :model="form" class="demo-form-inline">
             <el-col :span="24">
               <el-form-item label="单词拼写：">
-                <el-input :size="size" v-model="query2.a1" placeholder="单词拼写"></el-input>
+                <el-input :size="size" v-model="form.name" placeholder="单词拼写"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="24">
               <el-form-item label="中文释义">
-                <el-input type="textarea" v-model="query2.a1"></el-input>
+                <el-input type="textarea" v-model="form.zhDesc"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="24">
               <el-form-item label="英文释义	">
-                <el-input type="textarea" v-model="query2.a1"></el-input>
+                <el-input type="textarea" v-model="form.enDesc"></el-input>
               </el-form-item>
             </el-col>
 
@@ -91,7 +97,7 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="handleAdd">确 定</el-button>
       </span>
     </el-dialog>
   </basic-container>
@@ -99,7 +105,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/word'
+import { getRootList, rootSave, rootDele } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 export default {
@@ -113,25 +119,21 @@ export default {
       size: 'mini',
 
       query: {//参数
-        chName: "",
-        type1: "",
-        type2: "",
-        type3: "",
-        type4: "",
-        type5: "",
+        search: "",
       },
-
-
-      data: [1, 2, 3, 4, 5, 6], //列表
+      data: [], //列表
       page: {
         pageSize: 10,
-        currentPage: 1,
-        total: 100
+        pageNum: 1,
+        total: 0
       },
       selectionList: [],
 
-      query2: {
-        a1: ''
+      form: {
+        id: '',
+        name: "",
+        enDesc: "",
+        zhDesc: ""
       },
       dialogVisible: false
     }
@@ -147,32 +149,28 @@ export default {
     },
   },
   created () {
-    // this.getList()
+    this.onLoad()
   },
   methods: {
     onLoad () {
-      this.loading = true;
-      console.log(this.page);
-      getList(
-        this.page.currentPage,
+      getRootList(
+        this.page.pageNum,
         this.page.pageSize,
         Object.assign({}, this.query)
       ).then(res => {
-        const data = res.data.data;
-        this.page.total = data.total;
-        this.data = data.records;
-        this.loading = false;
-        // this.selectionClear();
+        const data = res.data;
+        this.page.total = data.totalNum;
+        this.data = data.content;
+        this.selectionClear()
       });
     },
     searchChange () {
-      this.page.currentPage = 1;
+      this.page.pageNum = 1;
       this.onLoad();
     },
     searchReset () {
       this.query = {
-        clientId: "",
-        clientSecret: ""
+        search: ""
       }
       this.onLoad();
     },
@@ -182,11 +180,40 @@ export default {
     },
     selectionClear () {
       this.selectionList = [];
-      this.$refs.crud.toggleSelection();
+
+    },
+    handleClick (i, item) {
+      this.dialogVisible = true
+      if (i == 0) {
+        this.form = {
+          id: '',
+          name: "",
+          enDesc: "",
+          zhDesc: ""
+        }
+        this.dialogVisible = true
+
+      } else {
+        this.form = item
+        this.dialogVisible = true
+      }
+    },
+    //新增
+    handleAdd () {
+      rootSave(this.form).then((res) => {
+        console.log(res)
+        this.data = [];
+        this.onLoad();
+        this.dialogVisible = false
+        this.$message({
+          type: "success",
+          message: "操作成功!"
+        });
+      })
     },
     handleDelete () {
-      if (this.selectionList.length === 0) {
-        this.$message.warning("请选择至少一条数据");
+      if (this.selectionList.length != 1) {
+        this.$message.warning("请选择一条数据");
         return;
       }
       this.$confirm("确定将选择数据删除?", {
@@ -195,21 +222,18 @@ export default {
         type: "warning"
       })
         .then(() => {
-          // return remove(this.ids);
+          return rootDele(this.ids);
         })
         .then(() => {
-          this.onLoad(this.page);
+          this.data = [];
+          this.onLoad();
           this.$message({
             type: "success",
             message: "操作成功!"
           });
-          this.$refs.crud.toggleSelection();
-        });
-    },
 
-    refreshChange () {
-      this.onLoad();
-    },
+        });
+    }
   },
 }
 </script>

@@ -16,7 +16,7 @@
         <el-col :span="12">
           <el-form-item label="出现频率	:">
             <el-select :size="size" style="width:100%;" v-model="formQuery.frequency" placeholder="请选择">
-              <el-option v-for="item in frequencyList" :key="item.value" :label="item.label" :value="item.value">
+              <el-option v-for="(item,index) in frequencyList" :key="index" :label="item.name" :value="item.val">
               </el-option>
             </el-select>
           </el-form-item>
@@ -24,9 +24,7 @@
         <el-col :span="12">
           <el-form-item label="词根:">
             <el-col :span="16">
-              <el-input readonly :size="size" v-model="formQuery.phonetic" placeholder="请输入词根">
-
-              </el-input>
+              <el-input readonly :size="size" v-model="formQuery.phonetic" placeholder="请输入词根"></el-input>
             </el-col>
             <el-col :span="8">
               &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size" @click="dialogVisible2 = true">选择</el-button>
@@ -38,9 +36,7 @@
         <el-col :span="12">
           <el-form-item label="发音:">
             <el-col :span="16">
-              <el-input readonly :size="size" v-model="formQuery.phonetic" placeholder="请输入发音">
-
-              </el-input>
+              <el-input readonly :size="size" v-model="formQuery.phonetic" placeholder="请输入发音"></el-input>
             </el-col>
             <el-col :span="8">
               &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size">选择</el-button>
@@ -314,7 +310,29 @@
 <script>
 // import { getDetailList, setUser, setClearing } from "@/api/account";
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-
+const defaultForm = {
+  "name": "",//单词
+  "phonetic": "",//音标
+  "frequency": 0,
+  "wordRoot": "",
+  "zhDesc": "",
+  "enDesc": "",
+  "example": "",
+  "similarId": 1,
+  "antonymId": "",
+  "fileUrl": "",
+  "categoryList": {
+    "c1": "",
+    "c2": "",
+    "c3": ""
+  },
+  "id": 1,
+  "kindList": [
+    {
+      "kindId": 1
+    }
+  ]
+};
 export default {
   // name: ,
   components: {
@@ -324,73 +342,27 @@ export default {
 
   },
   props: {
-    batchNo: {
-      type: String,
-      default: ''
+    typeDrawer: {
+      default: 0
     },
-    bankType: {
-      type: String,
-      default: ''
+    select: {
+      default: []
     },
-    chId: {
-      type: String,
-      default: ''
+    frequencyList: {
+      default: []
     },
+    fileUploadList: {
+      default: []
+    },
+
   },
   data () {
     return {
       size: 'mini',
       fetching: false,
-      frequencyList: [
-        {
-          label: '默认',
-          value: 0
-        },
-        {
-          label: '最低',
-          value: 1
-        },
-        {
-          label: '低',
-          value: 2
-        },
-        {
-          label: '中',
-          value: 3
-        },
-        {
-          label: '高',
-          value: 4
-        },
-        {
-          label: '最高',
-          value: 5
-        },
-      ],
+      formQuery: Object.assign({}, defaultForm),
 
-      formQuery: {
-        "name": "",//单词
-        "phonetic": "",//音标
-        "frequency": 0,
-        "wordRoot": "",
-        "zhDesc": "",
-        "enDesc": "",
-        "example": "",
-        "similarId": 1,
-        "antonymId": "",
-        "fileUrl": "",
-        "categoryList": {
-          "c1": "",
-          "c2": "",
-          "c3": ""
-        },
-        "id": 1,
-        "kindList": [
-          {
-            "kindId": 1
-          }
-        ]
-      },
+
       // 选择近义词 反义词
       query: {
         a1: '',

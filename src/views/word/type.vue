@@ -4,17 +4,17 @@
     <!-- 新增 删除 -->
     <el-row>
       <el-col :span="24">
-        <el-button type="primary" :size="size" icon="el-icon-add" @click="dialogVisible = true">添加</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button>
-        <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
+        <el-button type="primary" :size="size" icon="el-icon-add" @click="handleClick">添加</el-button>
+        <!-- <el-button type="primary" :size="size" icon="el-icon-edit">编辑</el-button> -->
+        <el-button type="danger" :size="size" icon="el-icon-delete" @click="handleDelete">删除</el-button>
       </el-col>
     </el-row>
     <!-- 搜索框 -->
     <el-row style="margin-top:20px;">
       <el-col :span="24">
         <el-form :inline="true" :model="query" class="demo-form-inline">
-          <el-form-item label="单词拼写：">
-            <el-input :size="size" v-model="query.name" placeholder="单词拼写"></el-input>
+          <el-form-item label="类型名称：	">
+            <el-input :size="size" v-model="query.name" placeholder="类型名称"></el-input>
           </el-form-item>
 
           <el-form-item label="所属项目：">
@@ -26,8 +26,7 @@
           </el-form-item>
 
           <el-form-item label="所属课程：">
-            <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择"
-              @change="changeSelect2($event)">
+            <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择">
               <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
@@ -60,28 +59,28 @@
       <!-- 拼写 -->
       <el-table-column label="类型名称">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.c3Name }}</span>
         </template>
       </el-table-column>
 
       <!-- 音标 -->
       <el-table-column label="所属课程	">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.c2Name }}</span>
         </template>
       </el-table-column>
 
       <!-- 词根 -->
       <el-table-column label="所属项目	">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.c1Name }}</span>
         </template>
       </el-table-column>
 
-      <!-- 出现频率 -->
-      <el-table-column label="状态">
+      <!-- 类型编码 -->
+      <el-table-column label="类型编码">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.code }}</span>
         </template>
       </el-table-column>
 
@@ -90,19 +89,22 @@
       @pagination="onLoad" />
 
     <el-dialog title="添加单词类型" :visible.sync="dialogVisible" append-to-body width="60%">
-      <!-- 搜索框 -->
       <el-row style="margin-top:20px;">
         <el-col :span="24">
           <el-form :model="form" class="demo-form-inline" label-width="100px">
             <el-col :span="24">
               <el-form-item label="类型名称：">
-                <el-input :size="size" v-model="form.name" placeholder="单词拼写"></el-input>
+                <el-input :size="size" v-model="form.name" placeholder="类型名称"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="类型编码：">
+                <el-input :size="size" v-model="form.code" placeholder="类型编码"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="24">
               <el-form-item label="所属项目：">
-                <el-select style="width:100%" :size="size" v-model="form.code" placeholder="请选择"
-                  @change="changeSelect1($event)">
+                <el-select style="width:100%" :size="size" v-model="c1" placeholder="请选择" @change="addSelect1($event)">
                   <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
                   </el-option>
                 </el-select>
@@ -111,9 +113,8 @@
             </el-col>
             <el-col :span="24">
               <el-form-item label="所属课程：">
-                <el-select style="width:100%" :size="size" v-model="form.pCode" placeholder="请选择"
-                  @change="changeSelect2($event)">
-                  <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
+                <el-select style="width:100%" :size="size" v-model="form.pCode" placeholder="请选择">
+                  <el-option v-for="(item,index) in c2List" :key="index" :label="item.name" :value="item.code">
                   </el-option>
                 </el-select>
 
@@ -137,7 +138,7 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="handleAdd">确 定</el-button>
       </span>
     </el-dialog>
   </basic-container>
@@ -178,6 +179,8 @@ export default {
         pCode: "",
         name: ""
       },
+      c1: '',//所属项目
+      c2List: [],
       dialogVisible: false
     }
   },
@@ -185,6 +188,7 @@ export default {
     ids () {
       let ids = [];
       this.selectionList.forEach(ele => {
+        console.log(ele)
         ids.push(ele.code);
       });
       return ids.join(",");
@@ -229,36 +233,44 @@ export default {
     selectionClear () {
       this.selectionList = [];
     },
-
+    handleClick () {
+      this.dialogVisible = true
+      // if (i == 0) {
+      //   this.dialogVisible = true
+      // } else {
+      //   if (this.selectionList.length != 1) {
+      //     this.$message.warning("请选择一条数据");
+      //     return;
+      //   }
+      //   this.dialogVisible = true
+      // }
+    },
     //新增
     handleAdd () {
-      if (this.selectionList.length === 0) {
-        this.$message.warning("请选择至少一条数据");
-        return;
-      }
-      this.$confirm("确定将选择数据删除?", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(() => {
-          // return remove(this.ids);
-        })
-        .then(() => {
-          this.data = [];
-          this.onLoad();
-          this.$message({
-            type: "success",
-            message: "操作成功!"
-          });
-
+      addCat(this.form).then((res) => {
+        console.log(res)
+        this.data = [];
+        this.onLoad();
+        this.dialogVisible = false
+        this.$message({
+          type: "success",
+          message: "操作成功!"
         });
+      })
+    },
+    addSelect1 (val) {
+      this.c1 = val
+      this.form.pCode = ''
+      this.c2List = []
+      getCategoryList(val).then((res) => {
+        this.c2List = res.data
+      })
     },
 
     //删除列表
     handleDelete () {
-      if (this.selectionList.length === 0) {
-        this.$message.warning("请选择至少一条数据");
+      if (this.selectionList.length != 1) {
+        this.$message.warning("请选择一条数据");
         return;
       }
       this.$confirm("确定将选择数据删除?", {
@@ -267,7 +279,7 @@ export default {
         type: "warning"
       })
         .then(() => {
-          // return remove(this.ids);
+          return deleCat(this.ids);
         })
         .then(() => {
           this.data = [];
@@ -293,10 +305,9 @@ export default {
       getCategoryList(val).then((res) => {
         this.select2 = res.data
       })
-    },
-    changeSelect2 (val) {
-      this.query.c2 = val
-    },
+    }
+
+
 
   },
 }

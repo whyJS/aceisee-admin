@@ -6,8 +6,8 @@
       <el-col :span="24">
         <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加单词</el-button>
         <el-button type="primary" :size="size" icon="el-icon-add">导入单词</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-edit">编辑单词</el-button>
-        <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button>
+        <!-- <el-button type="primary" :size="size" icon="el-icon-edit">编辑单词</el-button> -->
+        <!-- <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button> -->
       </el-col>
     </el-row>
     <!-- 搜索框 -->
@@ -15,52 +15,51 @@
       <el-col :span="24">
         <el-form :inline="true" :model="query" class="demo-form-inline">
           <el-form-item label="单词拼写：">
-            <el-input :size="size" v-model="query.chName" placeholder="单词拼写"></el-input>
+            <el-input :size="size" v-model="query.search" placeholder="单词拼写"></el-input>
           </el-form-item>
 
           <el-form-item label="所属项目：">
-            <el-select style="width:100px" :size="size" v-model="query.type1" placeholder="请选择"
+            <el-select style="width:100px" :size="size" v-model="query.c1" placeholder="请选择"
               @change="changeSelect1($event)">
-              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.id">
+              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
           </el-form-item>
 
           <el-form-item label="所属课程：">
-            <el-select style="width:100px" :size="size" v-model="query.type2" placeholder="请选择"
+            <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择"
               @change="changeSelect2($event)">
-              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.id">
+              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
 
           </el-form-item>
 
           <el-form-item label=" 所属类型：">
-            <el-select style="width:100px" :size="size" v-model="query.type3" placeholder="请选择"
-              @change="changeSelect3($event)">
-              <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.id">
-              </el-option>
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label=" 发音类型：">
-            <el-select style="width:100px" :size="size" v-model="query.type4" placeholder="请选择">
-              <el-option v-for="(item,index) in select4" :key="index" :label="item.name" :value="item.id">
+            <el-select style="width:100px" :size="size" v-model="query.c3" placeholder="请选择">
+              <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.code">
               </el-option>
             </el-select>
           </el-form-item>
 
           <el-form-item label="出现频率：">
-            <el-select style="width:100px" :size="size" v-model="query.type5" placeholder="请选择">
-              <el-option v-for="(item,index) in select5" :key="index" :label="item.name" :value="item.id">
+            <el-select style="width:100px" :size="size" v-model="query.frequency" placeholder="请选择">
+              <el-option v-for="(item,index) in frequencyList" :key="index" :label="item.name" :value="item.val">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="发音：">
+            <el-select style="width:100px" :size="size" v-model="query.fileUpload" placeholder="请选择">
+              <el-option v-for="(item,index) in fileUploadList" :key="index" :label="item.name" :value="item.val">
               </el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :size="size">查询</el-button>
+            <el-button type="primary" :size="size" @click="searchChange">查询</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :size="size">重置</el-button>
+            <el-button type="primary" :size="size" @click="searchReset">重置</el-button>
           </el-form-item>
 
         </el-form>
@@ -75,59 +74,65 @@
           }" row-key="id" border lazy @selection-change="selectionChange">
       <el-table-column type="selection" width="40"> </el-table-column>
       <!-- id -->
-      <el-table-column type="index" label="#" width="40">
+      <!-- <el-table-column type="index" label="#" width="40">
 
-      </el-table-column>
+      </el-table-column> -->
 
       <!-- 拼写 -->
       <el-table-column label="拼写">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
       <!-- 音标 -->
       <el-table-column label="音标">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.phonetic }}</span>
         </template>
       </el-table-column>
 
       <!-- 词根 -->
       <el-table-column label="词根">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.wordRoot }}</span>
         </template>
       </el-table-column>
 
       <!-- 出现频率 -->
       <el-table-column label="出现频率">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.frequency }}</span>
         </template>
       </el-table-column>
       <!-- 所属项目 -->
       <el-table-column label="所属项目">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.category }}</span>
         </template>
       </el-table-column>
       <!-- 发音 -->
       <el-table-column label="发音">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.fileUrl }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" icon="el-icon-edit" size="small" @click="handleDelete(scope.row)">编辑</el-button>
+          <el-button type="text" icon="el-icon-delete" size="small" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
 
     </el-table>
-    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
+    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.pageNum" :limit.sync="page.pageSize"
       @pagination="onLoad" />
 
     <!-- 添加 -->
     <el-drawer ref="detailDrawer" :title="isEditTitle" :visible.sync="adddrawer" :destroy-on-close="destroyOnClose"
       direction="rtl" :append-to-body="appendToBody" size="80%">
-      <word-add @closeView="closeView">
-      </word-add>
+      <word-add @closeView="closeView" :select="select1" :typeDrawer="type" :frequencyList="frequencyList"
+        :fileUploadList="fileUploadList"></word-add>
     </el-drawer>
 
   </basic-container>
@@ -135,7 +140,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/word'
+import { getWordList, getCategoryList, wordDele } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import WordAdd from "./components/add";
 export default {
@@ -148,48 +153,64 @@ export default {
     return {
       size: 'mini',
       //下拉选
-      select1: [{
-        name: 'select',
-        id: 1
-      },
-      {
-        name: 'select',
-        id: 2
-      }],
+      select1: [],
       select2: [],
       select3: [],
-      select4: [{
-        name: '全部',
-        id: 1
-      },
-      {
-        name: 'select',
-        id: 2
-      }],
-      select5: [{
-        name: '全部',
-        id: 1
-      },
-      {
-        name: 'select',
-        id: 2
-      }],
+      frequencyList: [//出现频率
+        {
+          name: '默认',
+          val: '0'
+        },
+        {
+          name: '最低',
+          val: '1'
+        },
+        {
+          name: '低',
+          val: '2'
+        },
+        {
+          name: '中',
+          val: '3'
+        },
+        {
+          name: '高',
+          val: '4'
+        },
+        {
+          name: '最高',
+          val: '2'
+        },
+      ],
+      fileUploadList: [
+        {
+          name: '默认',
+          val: '0'
+        },
+        {
+          name: '上传',
+          val: '1'
+        },
+        {
+          name: '未上传',
+          val: '2'
+        },
+      ],//是否上传
+
       //参数
       query: {
-        chName: "",
-        type1: "",
-        type2: "",
-        type3: "",
-        type4: "",
-        type5: "",
+        search: "",
+        c1: "",
+        c2: "",
+        c3: "",
+        fileUpload: '0',
+        frequency: '0'
       },
-
-      //列表
-      data: [1, 2, 3, 4, 5, 6],
+      data: [], //列表
       page: {
         pageSize: 10,
-        currentPage: 1,
-        total: 100
+        pageNum: 1,
+        total: 0
       },
       selectionList: [],
 
@@ -198,6 +219,7 @@ export default {
       appendToBody: true,
       destroyOnClose: true,
       isEditTitle: '添加单词',
+      type: 0
     }
   },
   computed: {
@@ -210,35 +232,37 @@ export default {
     },
   },
   created () {
-    // this.getList()
+    this.onLoad()
+    this._getCategoryList("")
   },
   methods: {
     //加载列表
     onLoad () {
-      this.loading = true;
-      console.log(this.page);
-      getList(
-        this.page.currentPage,
+      getWordList(
+        this.page.pageNum,
         this.page.pageSize,
         Object.assign({}, this.query)
       ).then(res => {
-        const data = res.data.data;
-        this.page.total = data.total;
-        this.data = data.records;
-        this.loading = false;
-        this.selectionClear();
+        const data = res.data;
+        this.page.total = data.totalNum;
+        this.data = data.content;
+        this.selectionClear()
       });
     },
     //查询
     searchChange () {
-      this.page.currentPage = 1;
+      this.page.pageNum = 1;
       this.onLoad();
     },
     //重置
     searchReset () {
       this.query = {
-        clientId: "",
-        clientSecret: ""
+        search: "",
+        c1: "",
+        c2: "",
+        c3: "",
+        fileUpload: '0',
+        frequency: '0'
       }
       this.onLoad();
     },
@@ -248,84 +272,56 @@ export default {
     },
     selectionClear () {
       this.selectionList = [];
-      this.$refs.crud.toggleSelection();
+      // this.$refs.crud.toggleSelection();
     },
     //删除
-    handleDelete () {
-      if (this.selectionList.length === 0) {
-        this.$message.warning("请选择至少一条数据");
-        return;
-      }
+    handleDelete (row) {
       this.$confirm("确定将选择数据删除?", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          // return remove(this.ids);
+          return wordDele(row.id)
         })
         .then(() => {
-          this.onLoad(this.page);
+          this.data = []
+          this.onLoad();
           this.$message({
             type: "success",
             message: "操作成功!"
           });
-          this.$refs.crud.toggleSelection();
         });
     },
 
 
 
-
-    // 三级联动选择框
+    // 类别选择框选择框
+    _getCategoryList (code) {
+      getCategoryList(code).then((res) => {
+        this.select1 = res.data
+      })
+    },
     changeSelect1 (val) {
-      console.log(val)
-      this.query.type1 = val
-      this.query.type2 = ''
-      this.query.type3 = ''
+      this.query.c1 = val
+      this.query.c2 = ''
+      this.query.c3 = ''
       this.select2 = []
       this.select3 = []
-      setTimeout(() => {
-        this.select2 = [
-          {
-            name: 'select2',
-            id: 1
-          },
-          {
-            name: 'select2',
-            id: 2
-          }, {
-            name: 'select2',
-            id: 3
-          }
-        ]
+      getCategoryList(val).then((res) => {
+        this.select2 = res.data
       })
     },
     changeSelect2 (val) {
-      console.log(val)
-      this.query.type2 = val
-      this.query.type3 = ''
+
+      this.query.c2 = val
+      this.query.c3 = ''
       this.select3 = []
-      setTimeout(() => {
-        this.select3 = [
-          {
-            name: 'select3',
-            id: 1
-          },
-          {
-            name: 'select3',
-            id: 2
-          }, {
-            name: 'select3',
-            id: 3
-          }
-        ]
+      getCategoryList(val).then((res) => {
+        this.select3 = res.data
       })
     },
-    changeSelect3 (val) {
-      console.log(val)
-      this.type3 = val
-    },
+
 
     // 添加
     handleAdd () {
