@@ -131,8 +131,8 @@
     <!-- 添加 -->
     <el-drawer ref="detailDrawer" :title="isEditTitle" :visible.sync="adddrawer" :destroy-on-close="destroyOnClose"
       direction="rtl" :append-to-body="appendToBody" size="80%">
-      <word-add @closeView="closeView" :select="select1" :typeDrawer="type" :frequencyList="frequencyList"
-        :fileUploadList="fileUploadList"></word-add>
+      <word-add @closeView="closeView" :kind="kind" :tree="tree" :select="select1" :typeDrawer="type"
+        :frequencyList="frequencyList" :fileUploadList="fileUploadList"></word-add>
     </el-drawer>
 
   </basic-container>
@@ -140,7 +140,7 @@
 </template>
 
 <script>
-import { getWordList, getCategoryList, wordDele } from '@/api/word'
+import { getWordList, getCategoryList, wordDele, getKindList, getCategoryTree } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import WordAdd from "./components/add";
 export default {
@@ -152,6 +152,8 @@ export default {
   data () {
     return {
       size: 'mini',
+      kind: [],
+      tree: [],
       //下拉选
       select1: [],
       select2: [],
@@ -234,6 +236,10 @@ export default {
   created () {
     this.onLoad()
     this._getCategoryList("")
+    getKindList().then((res) => {
+      this.kind = res.data
+    })
+
   },
   methods: {
     //加载列表
@@ -333,6 +339,10 @@ export default {
       this.$refs.detailDrawer.closeDrawer();
       this.adddrawer = false;
     },
+
+
+
+
   },
 }
 </script>

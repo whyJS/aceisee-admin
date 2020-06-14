@@ -52,7 +52,37 @@
 
       </el-row>
       <div class="line"></div>
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="所属项目：">
+            <el-select style="width:100%" :size="size" v-model="formQuery.categoryList.c1" placeholder="请选择"
+              @change="changeSelect1($event)">
+              <el-option v-for="(item,index) in select" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="所属课程：">
+            <el-select style="width:100%" :size="size" v-model="formQuery.categoryList.c2" placeholder="请选择"
+              @change="changeSelect2($event)">
+              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
 
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label=" 所属类型：">
+            <el-select style="width:100%" :size="size" v-model="formQuery.categoryList.c3" placeholder="请选择">
+              <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+      <div class="line"></div>
       <el-row>
         <el-col :span="16">
           <el-form-item label="所属项目：">
@@ -160,7 +190,7 @@
       <div class="line"></div>
       <el-row class="topWrapper">
         <el-col :span="24" class="btnCls">
-          <el-button type="primary" @click="onSubWord()">添加单词</el-button>
+          <el-button type="primary">添加单词</el-button>
           <el-button icon="el-icon-delete">取消</el-button>
         </el-col>
       </el-row>
@@ -360,7 +390,7 @@
 
 <script>
 import { getToken } from '@/utils/auth'
-import { getWordList, getCategoryList, getRootList, getCategoryTree, wordSave } from '@/api/word'
+import { getWordList, getCategoryList, getRootList, getCategoryTree } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 const defaultForm = {
   "name": "",//单词
@@ -373,8 +403,17 @@ const defaultForm = {
   "similarId": 1,
   "antonymId": "",
   "fileUrl": "",
-  "categoryList": [],
-  "kindList": []
+  "categoryList": {
+    "c1": "",
+    "c2": "",
+    "c3": ""
+  },
+  "id": 1,
+  "kindList": [
+    {
+      "kindId": 1
+    }
+  ]
 };
 export default {
   // name: ,
@@ -433,10 +472,24 @@ export default {
             }
           }
         })
+        console.log(arr)
 
 
-        this.formQuery.categoryList = arr
+        //  function filter(newTree) {
+        //     const res = []
 
+        //     data.forEach(item => {
+        //       let obj = Object.assign({}, item)
+        //       obj.isShow = false
+        //       if (item.children) {
+        //         obj.children = this.filterTrees(obj.children)
+        //       }
+
+        //       res.push(obj)
+        //     })
+
+        //     return res
+        //   },
       },
       deep: true,
       immediate: true
@@ -505,6 +558,9 @@ export default {
       size: 'mini',
       fetching: false,
       formQuery: Object.assign({}, defaultForm),
+      //类别下拉选
+      select2: [],
+      select3: [],
 
 
       // 选择近义词 反义词
@@ -709,12 +765,34 @@ export default {
 
     },
 
+    //选择词性
+    // setKind()
+
+
+    // 类别选择框选择框
+    changeSelect1 (val) {
+      this.formQuery.categoryList.c1 = val
+      this.formQuery.categoryList.c2 = ''
+      this.formQuery.categoryList.c3 = ''
+      this.select2 = []
+      this.select3 = []
+      getCategoryList(val).then((res) => {
+        this.select2 = res.data
+      })
+    },
+    changeSelect2 (val) {
+      this.formQuery.categoryList.c2 = val
+      this.formQuery.categoryList.c3 = ''
+      this.select3 = []
+      getCategoryList(val).then((res) => {
+        this.select3 = res.data
+      })
+    },
 
 
     cSub () {
       console.log(this.treeList)
       this.treeName = this.treeList
-      this.dialogVisible3 = false
     },
     //处理树状结构
     filterTrees (data) {
@@ -767,24 +845,6 @@ export default {
         this.treeList[i1].children[i2].isShow = true
       }
     },
-
-
-
-    onSubWord () {
-      let arr = []
-      this.kindList.forEach((item) => {
-        arr.push({
-          kindId: item
-        })
-      })
-
-      let query = Object.assign({}, this.formQuery, { kindList: arr })
-      console.log('asasasasas')
-      wordSave(query).then((res) => {
-        console.log(res)
-      })
-      console.log(query)
-    }
 
 
   }

@@ -150,6 +150,27 @@ export function wordDele (id) {
 
 
 
+//单词保存
+export function wordSave (data) {
+  return request({
+    url: "/word/save",
+    method: "post",
+    data
+  });
+}
+
+
+
+// 词性列表接口
+
+export function getKindList () {
+  return request({
+    url: "/word/kind/list",
+    method: "get",
+    params: {}
+  });
+}
+
 
 
 
