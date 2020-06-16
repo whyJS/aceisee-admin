@@ -31,11 +31,10 @@
       <!-- 词根 -->
       <el-table-column label="词性">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.wordKind }}</span>
         </template>
       </el-table-column>
 
-      <!-- 出现频率 -->
       <el-table-column label="单词类型	">
         <template slot-scope="scope">
           <span>{{ scope.row.wordKind }}</span>

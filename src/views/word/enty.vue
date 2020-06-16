@@ -5,7 +5,7 @@
     <el-row>
       <el-col :span="24">
         <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加单词</el-button>
-        <el-button type="primary" :size="size" icon="el-icon-add">导入单词</el-button>
+        <el-button type="primary" @click="handleUpload" :size="size" icon="el-icon-add">导入单词</el-button>
         <!-- <el-button type="primary" :size="size" icon="el-icon-edit">编辑单词</el-button> -->
         <!-- <el-button type="danger" :size="size" icon="el-icon-delete">删除</el-button> -->
       </el-col>
@@ -119,7 +119,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
-          <el-button type="text" icon="el-icon-edit" size="small" @click="handleDelete(scope.row)">编辑</el-button>
+          <el-button type="text" icon="el-icon-edit" size="small" @click="handleUpdata(scope.row)">编辑</el-button>
           <el-button type="text" icon="el-icon-delete" size="small" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -135,17 +135,68 @@
         :frequencyList="frequencyList" :fileUploadList="fileUploadList"></word-add>
     </el-drawer>
 
+    <!-- 编辑 -->
+    <el-drawer ref="detailDrawer2" :title="isEditTitle2" :visible.sync="editdrawer" :destroy-on-close="destroyOnClose"
+      direction="rtl" :append-to-body="appendToBody" size="80%">
+      <word-edit @closeView="closeView" :kind="kind" :tree="tree" :select="select1" :typeDrawer="type"
+        :frequencyList="frequencyList" :fileUploadList="fileUploadList" :wordId="wordId"></word-edit>
+    </el-drawer>
+
+    <!-- 选择分类 -->
+    <el-dialog title="选择分类" :destroy-on-close="destroyOnClose" :visible.sync="uploadShow" append-to-body width="60%">
+      <el-row style="margin-top:20px;padding-bottom:40px;">
+        <el-col :span="24">
+          <el-form :inline="true" :model="query" class="demo-form-inline">
+            <el-form-item label="所属项目：">
+              <el-select style="width:100px" :size="size" v-model="query.c1" placeholder="请选择"
+                @change="changeSelect1($event)">
+                <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
+                </el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="所属课程：">
+              <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择"
+                @change="changeSelect2($event)">
+                <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
+                </el-option>
+              </el-select>
+
+            </el-form-item>
+
+            <el-form-item label=" 所属类型：">
+              <el-select style="width:100px" :size="size" v-model="query.c3" placeholder="请选择">
+                <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.code">
+                </el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-upload class="upload-demo" ref="upload" :limit="1" :data="uploadData" :action="url" :headers="headers"
+              :auto-upload="false">
+              <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+              <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+
+            </el-upload>
+
+          </el-form>
+        </el-col>
+      </el-row>
+
+    </el-dialog>
+
   </basic-container>
   <!-- </div> -->
 </template>
 
 <script>
-import { getWordList, getCategoryList, wordDele, getKindList, getCategoryTree } from '@/api/word'
+import { getToken } from '@/utils/auth'
+import { getWordList, getCategoryList, wordDele, getKindList } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import WordAdd from "./components/add";
+import WordEdit from "./components/edit";
 export default {
   name: 'ComplexTable',
-  components: { Pagination, WordAdd },
+  components: { Pagination, WordAdd, WordEdit },
   filters: {
 
   },
@@ -161,27 +212,27 @@ export default {
       frequencyList: [//出现频率
         {
           name: '默认',
-          val: '0'
+          val: 0
         },
         {
           name: '最低',
-          val: '1'
+          val: 1
         },
         {
           name: '低',
-          val: '2'
+          val: 2
         },
         {
           name: '中',
-          val: '3'
+          val: 3
         },
         {
           name: '高',
-          val: '4'
+          val: 4
         },
         {
           name: '最高',
-          val: '2'
+          val: 5
         },
       ],
       fileUploadList: [
@@ -206,7 +257,7 @@ export default {
         c2: "",
         c3: "",
         fileUpload: '0',
-        frequency: '0'
+        frequency: 0
       },
       data: [], //列表
       page: {
@@ -221,7 +272,17 @@ export default {
       appendToBody: true,
       destroyOnClose: true,
       isEditTitle: '添加单词',
-      type: 0
+      type: 0,
+
+      editdrawer: false,
+      wordId: '',
+      isEditTitle2: "编辑单词",
+
+
+      //单词导入
+      uploadShow: false,
+      url: '/api/word/import',
+      headers: {},
     }
   },
   computed: {
@@ -232,8 +293,23 @@ export default {
       });
       return ids.join(",");
     },
+    uploadData () {
+      return {
+        categoryJson: [
+          {
+            c1: this.query.c1,
+            c2: this.query.c2,
+            c3: this.query.c3
+          }
+        ]
+
+      }
+    }
   },
   created () {
+    this.headers = {
+      "aceisee-pfuser-ticket": getToken()
+    }
     this.onLoad()
     this._getCategoryList("")
     getKindList().then((res) => {
@@ -268,7 +344,7 @@ export default {
         c2: "",
         c3: "",
         fileUpload: '0',
-        frequency: '0'
+        frequency: 0
       }
       this.onLoad();
     },
@@ -338,6 +414,27 @@ export default {
     closeView () {
       this.$refs.detailDrawer.closeDrawer();
       this.adddrawer = false;
+    },
+    handleUpload () {
+      this.uploadShow = true
+    },
+    submitUpload () {
+      this.$refs.upload.submit();
+    },
+
+
+
+    //编辑单词
+    handleUpdata (item) {
+      console.log(item)
+      console.log('添加')
+      this.editdrawer = true;
+      this.wordId = item.id
+    },
+    // 关闭弹框
+    closeView2 () {
+      this.$refs.detailDrawer2.closeDrawer();
+      this.editdrawer = false;
     },
 
 

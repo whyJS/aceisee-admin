@@ -24,7 +24,7 @@
         <el-col :span="12">
           <el-form-item label="词根:">
             <el-col :span="16">
-              <el-input readonly :size="size" v-model="wordRootName" placeholder="请选择词根"></el-input>
+              <el-input readonly :size="size" v-model="formQuery.wordRoot.name" placeholder="请选择词根"></el-input>
             </el-col>
             <el-col :span="8">
               &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size" @click="woderClick2">选择</el-button>
@@ -35,13 +35,6 @@
 
         <el-col :span="12">
           <el-form-item label="发音:">
-            <!-- <el-col :span="16">
-              <el-input readonly :size="size" v-model="formQuery.fileUrl" placeholder="请选择发音"></el-input>
-            </el-col>
-            <el-col :span="8">
-              &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size">选择</el-button>
-            </el-col> -->
-
             <el-upload class="upload-demo" :action="url" :headers="headers">
               <el-button size="small" type="primary">点击上传</el-button>
               <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
@@ -56,7 +49,7 @@
       <el-row>
         <el-col :span="16">
           <el-form-item label="所属项目：">
-            <div v-for="(c1,i1) in treeName" :key="i1">
+            <!-- <div v-for="(c1,i1) in treeName" :key="i1">
               <ul v-if="c1.isShow">
                 <li>{{c1.name}}</li>
                 <ul v-if="c1.children">
@@ -73,10 +66,11 @@
                       </ul>
                     </li>
                   </div>
-
                 </ul>
-
               </ul>
+            </div> -->
+            <div v-for="(c,i) in formQuery.categoryInfo" :key="i">
+              {{c.c1Name}}&nbsp;&nbsp;-->&nbsp;&nbsp;{{c.c2Name}}&nbsp;&nbsp;-->&nbsp;&nbsp;{{c.c3name}}
             </div>
 
           </el-form-item>
@@ -94,14 +88,7 @@
               <el-checkbox-button v-for="val in kind" :key="val.id" :label="val.id">{{val.name}}
               </el-checkbox-button>
             </el-checkbox-group>
-            <!-- <el-radio-group v-model="formQuery.wordRoot" size="mini">
-              <el-radio-button label="上海"></el-radio-button>
-              <el-radio-button label="北京"></el-radio-button>
-              <el-radio-button label="广州"></el-radio-button>
-              <el-radio-button label="深圳"></el-radio-button>
-            </el-radio-group>
-            &nbsp;&nbsp;&nbsp;&nbsp;<el-button :size="size" @click="dialogVisible3 = true" type="primary">添加
-            </el-button> -->
+
           </el-col>
         </el-form-item>
       </el-row>
@@ -360,21 +347,22 @@
 
 <script>
 import { getToken } from '@/utils/auth'
-import { getWordList, getCategoryList, getRootList, getCategoryTree, wordSave } from '@/api/word'
+import { getWordList, getRootList, getCategoryTree, wordSave } from '@/api/word'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 const defaultForm = {
-  "name": "",//单词
-  "phonetic": "",//音标
-  "frequency": "0",
-  "wordRoot": "",
-  "zhDesc": "",
-  "enDesc": "",
-  "example": "",
-  "similarId": 1,
-  "antonymId": "",
-  "fileUrl": "",
-  "categoryList": [],
-  "kindList": []
+  enDesc: "cat",//英文
+  example: "sdjfksdajfsadff",//例句
+  fileUrl: "aaaasdfsdaf",//发音地址
+  frequency: "0",//出现频率
+  name: "",//拼写
+  phonetic: "aaa",//音标
+  zhDesc: "狗",//中文
+  wordRoot: {
+    id: null
+  },
+  categoryInfo: [],//分类
+  similarIdList: [],
+  antonymIdList: [],
 };
 export default {
   // name: ,
@@ -382,66 +370,15 @@ export default {
     Pagination
   },
   watch: {
-    treeList: {
-      handler (newTree) {
-
-        let arr = []
-        newTree.forEach(item => {
-          console.log(item)
-          if (item.isShow) {
-            if (item.children) {
-              item.children.forEach(item2 => {
-                if (item2.isShow) {
-                  if (item2.children) {
-                    item2.children.forEach(item3 => {
-                      if (item3.isShow) {
-                        arr.push({
-                          c1: item.code,
-                          c2: item2.code,
-                          c3: item3.code
-                        })
-                      } else {
-                        arr.push({
-                          c1: item.code,
-                          c2: item2.code,
-                          c3: ""
-                        })
-                      }
-                    })
-                  } else {
-                    arr.push({
-                      c1: item.code,
-                      c2: item2.code,
-                      c3: ""
-                    })
-                  }
-                } else {
-                  arr.push({
-                    c1: item.code,
-                    c2: "",
-                    c3: ""
-                  })
-                }
-              })
-            } else {
-              console.log('asasa')
-              arr.push({
-                c1: item.code,
-                c2: "",
-                c3: ""
-              })
-            }
-          }
-        })
+    // treeList: {
+    //   handler (newTree) {
 
 
-        this.formQuery.categoryList = arr
+    //   },
+    //   deep: true,
+    //   immediate: true
 
-      },
-      deep: true,
-      immediate: true
-
-    }
+    // }
   },
   filters: {
 
@@ -458,20 +395,24 @@ export default {
       let ids = [];
       let names = []
       this.similarList.forEach(ele => {
-        ids.push(ele.id);
+        ids.push({
+          id: ele.id
+        });
         names.push(ele.name)
       });
-      this.formQuery.similarId = ids
+      this.formQuery.similarIdList = ids
       return names.join(",");
     },
     antonymName () {
       let ids = [];
       let names = []
       this.antonymList.forEach(ele => {
-        ids.push(ele.id);
+        ids.push({
+          id: ele.id
+        });
         names.push(ele.name)
       });
-      this.formQuery.antonymId = ids
+      this.formQuery.antonymIdList = ids
       return names.join(",");
 
     }
@@ -529,7 +470,7 @@ export default {
       selectionList: [],
 
       // 选择词根
-      wordRootName: '',
+      // wordRootName: '',
       query2: {
         search: "",
       },
@@ -551,10 +492,8 @@ export default {
       // 单词分类
       dialogVisible3: false,
       treeList: [],
-      treeName: []
-
-
-
+      treeName: [],
+      categoryList: []
     }
   },
   created () {
@@ -565,7 +504,7 @@ export default {
 
     getCategoryTree().then((res) => {
       this.treeList = this.filterTrees(res.data)
-      console.log(this.tree)
+      // console.log(this.tree)
     })
   },
 
@@ -633,7 +572,7 @@ export default {
     },
     getCurrentRow (row) { //获取选中数据
       this.selectionItem = row;
-      console.log(row)
+      // console.log(row)
     },
     setUserClick () {
 
@@ -692,13 +631,7 @@ export default {
     setUserClick2 () {
 
       if (this.selectionItem2.id) {
-
-        let { name, id } = this.selectionItem2
-        console.log(name)
-
-        this.formQuery.wordRoot = id
-        this.wordRootName = name
-        console.log(this.formQuery)
+        this.formQuery.wordRoot = this.selectionItem2
         this.dialogVisible2 = false
       } else {
         this.$message({
@@ -710,11 +643,20 @@ export default {
     },
 
 
-
+    //选择分类确定
     cSub () {
-      console.log(this.treeList)
       this.treeName = this.treeList
-      this.dialogVisible3 = false
+      let arr = this.havaTreeList(this.treeList);
+      if (arr.length > 0) {
+        this.formQuery.categoryInfo = arr
+        this.dialogVisible3 = false
+      } else {
+        this.$message({
+          message: '请选择，正确分类，三级分类不能为空！！！！',
+          type: 'success'
+        });
+      }
+
     },
     //处理树状结构
     filterTrees (data) {
@@ -732,7 +674,6 @@ export default {
 
       return res
     },
-
     treeChange1 (i1) {
       if (!this.treeList[i1].isShow) {
         if (this.treeList[i1].children) {
@@ -767,6 +708,78 @@ export default {
         this.treeList[i1].children[i2].isShow = true
       }
     },
+    //获取分类数据方法
+    havaTreeList (newTree) {
+      let arr = []
+      newTree.forEach(item => {
+        if (item.isShow) {
+          if (item.children) {
+            item.children.forEach(item2 => {
+              if (item2.isShow) {
+                if (item2.children) {
+                  item2.children.forEach(item3 => {
+                    if (item3.isShow) {
+                      arr.push({
+                        c1: item.code,
+                        c2: item2.code,
+                        c3: item3.code,
+                        c1Name: item.name,
+                        c2Name: item2.name,
+                        c3name: item3.name,
+                      })
+                    } else {
+                      arr.push({
+                        c1: item.code,
+                        c2: item2.code,
+                        c3: "",
+                        c1Name: item.name,
+                        c2Name: item2.name,
+                        c3name: "",
+                      })
+                    }
+                  })
+                } else {
+                  arr.push({
+                    c1: item.code,
+                    c2: item2.code,
+                    c3: "",
+                    c1Name: item.name,
+                    c2Name: item2.name,
+                    c3name: "",
+                  })
+                }
+              } else {
+                arr.push({
+                  c1: item.code,
+                  c2: "",
+                  c3: "",
+                  c1Name: item.name,
+                  c2Name: "",
+                  c3name: "",
+                })
+              }
+            })
+          } else {
+            arr.push({
+              c1: item.code,
+              c2: "",
+              c3: "",
+              c1Name: item.name,
+              c2Name: "",
+              c3name: "",
+            })
+          }
+        }
+      })
+      let newarr = []
+      arr.forEach((item) => {
+        if (item.c3) {
+          newarr.push(item)
+        }
+      })
+      return newarr
+    },
+
 
 
 
@@ -774,11 +787,11 @@ export default {
       let arr = []
       this.kindList.forEach((item) => {
         arr.push({
-          kindId: item
+          id: item
         })
       })
 
-      let query = Object.assign({}, this.formQuery, { kindList: arr })
+      let query = Object.assign({}, this.formQuery, { wordKindList: arr })
       console.log('asasasasas')
       wordSave(query).then((res) => {
         console.log(res)

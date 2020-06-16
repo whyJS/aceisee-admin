@@ -137,6 +137,17 @@ export function getWordList (pageNum, pageSize, data) {
   });
 }
 
+// 单词详情
+export function getWordDetail (id) {
+  return request({
+    url: "/word/detail",
+    method: "get",
+    params: {
+      id
+    }
+  });
+}
+
 //单词删除
 export function wordDele (id) {
   return request({
