@@ -4,13 +4,13 @@
     <!-- 搜索框 -->
     <el-row style="margin-top:20px;">
       <el-col :span="24">
-        <el-form :inline="true" :model="query" class="demo-form-inline">
+        <el-form :inline="true" class="demo-form-inline">
           <el-form-item label="单词：	">
-            <el-input :size="size" v-model="query.chName" placeholder="单词"></el-input>
+            <el-input :size="size" v-model="query.search" placeholder="单词"></el-input>
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" :size="size">查询</el-button>
+            <el-button type="primary" @click="searchChange" :size="size">查询</el-button>
           </el-form-item>
 
         </el-form>
@@ -23,41 +23,41 @@
             fontWeight: 700,
             background: '#f5f5f5'
           }" row-key="id" border lazy>
-      <el-table-column type="selection" width="40"> </el-table-column>
 
       <el-table-column label="单词	">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="错误次数	">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.testErrorNum }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="测试次数		">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.testNum }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="错误比率">
         <template slot-scope="scope">
-          <span>{{ scope.row }}</span>
+          <span>{{ scope.row.rate }}</span>
         </template>
       </el-table-column>
 
     </el-table>
-    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.currentPage" :limit.sync="page.pageSize"
+    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.pageNum" :limit.sync="page.pageSize"
       @pagination="onLoad" />
+
   </basic-container>
   <!-- </div> -->
 </template>
 
 <script>
-import { getList } from '@/api/word'
+import { getStatisticsList } from '@/api/list'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 export default {
@@ -70,18 +70,15 @@ export default {
     return {
       size: 'mini',
 
-
       query: {//参数
-        chName: "",
+        search: "",
 
       },
-
-
-      data: [1, 2, 3, 4, 5, 6], //列表
+      data: [], //列表
       page: {
         pageSize: 10,
-        currentPage: 1,
-        total: 100
+        pageNum: 1,
+        total: 0
       },
 
     }
@@ -90,28 +87,26 @@ export default {
 
   },
   created () {
-    // this.getList()
+    this.onLoad()
   },
   methods: {
     onLoad () {
-      this.loading = true;
-      console.log(this.page);
-      getList(
-        this.page.currentPage,
+
+      getStatisticsList(
+        this.page.pageNum,
         this.page.pageSize,
         Object.assign({}, this.query)
       ).then(res => {
-        const data = res.data.data;
-        this.page.total = data.total;
-        this.data = data.records;
-        this.loading = false;
-        // this.selectionClear();
+        const data = res.data;
+        this.page.total = data.totalNum;
+        this.data = data.content;
       });
     },
     searchChange () {
       this.page.currentPage = 1;
       this.onLoad();
     },
+
 
   },
 }

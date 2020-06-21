@@ -38,11 +38,11 @@
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="20">
           <el-form-item label="发音:">
-            <el-upload class="upload-demo" :action="url" :headers="headers">
+            <el-upload :on-success="uploadSuccess" :limit="1" class="upload-demo" :action="url" :headers="headers">
               <el-button size="small" type="primary">点击上传</el-button>
-              <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+              <div v-if="formQuery.fileUrl">音频链接：{{formQuery.fileUrl}}</div>
             </el-upload>
 
           </el-form-item>
@@ -153,7 +153,7 @@
       <el-row class="topWrapper">
         <el-col :span="24" class="btnCls">
           <el-button type="primary" @click="onSubWord()">编辑单词</el-button>
-          <el-button icon="el-icon-delete">取消</el-button>
+          <!-- <el-button icon="el-icon-delete">取消</el-button> -->
         </el-col>
       </el-row>
 
@@ -825,10 +825,32 @@ export default {
       let query = Object.assign({}, this.formQuery, { wordKindList: arr })
       console.log('asasasasas')
       wordSave(query).then((res) => {
-        console.log(res)
+        // console.log(res)
+        this.$message({
+          message: res.msg,
+          type: 'success'
+        });
       })
       console.log(query)
-    }
+    },
+    uploadSuccess (res) {
+      if (res.result != 200) {
+        this.$message({
+          message: res.msg || 'Error',
+          type: 'error',
+          duration: 5 * 1000
+        })
+        this.$refs.upload.clearFiles()
+      } else {
+        this.$message({
+          message: "上传成功！！！",
+          type: 'success',
+          duration: 5 * 1000
+        })
+
+        this.formQuery.fileUrl = res.data.url
+      }
+    },
 
 
   }

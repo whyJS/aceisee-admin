@@ -1,132 +1,308 @@
 <template>
-  <div class="app-container">
-    <el-table v-loading="listLoading" :data="list" border fit highlight-current-row style="width: 100%">
-      <el-table-column align="center" label="ID" width="80">
-        <template slot-scope="{row}">
-          <span>{{ row.id }}</span>
+  <!-- <div class="app-container"> -->
+  <basic-container>
+    <!-- 新增 删除 -->
+    <el-row>
+      <el-col :span="24">
+        <el-button type="primary" @click="handleAdd" :size="size" icon="el-icon-add">添加List</el-button>
+      </el-col>
+    </el-row>
+    <!-- 搜索框 -->
+    <el-row style="margin-top:20px;">
+      <el-col :span="24">
+        <el-form :inline="true" :model="query" class="demo-form-inline">
+          <el-form-item label="名称：">
+            <el-input :size="size" v-model="query.search" placeholder="名称"></el-input>
+          </el-form-item>
+
+          <el-form-item label="所属项目：">
+            <el-select style="width:100px" :size="size" v-model="query.c1" placeholder="请选择"
+              @change="changeSelect1($event)">
+              <el-option v-for="(item,index) in select1" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="所属课程：">
+            <el-select style="width:100px" :size="size" v-model="query.c2" placeholder="请选择"
+              @change="changeSelect2($event)">
+              <el-option v-for="(item,index) in select2" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+
+          </el-form-item>
+
+          <el-form-item label=" 所属类型：">
+            <el-select style="width:100px" :size="size" v-model="query.c3" placeholder="请选择">
+              <el-option v-for="(item,index) in select3" :key="index" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :size="size" @click="searchChange">查询</el-button>
+          </el-form-item>
+        </el-form>
+      </el-col>
+    </el-row>
+
+    <!-- 列表 -->
+    <el-table :data="data" ref="crud" :header-cell-style="{
+            color: '#333',
+            fontWeight: 700,
+            background: '#f5f5f5'
+          }" row-key="id" border lazy>
+
+      <!-- 名称 -->
+      <el-table-column label="名称">
+        <template slot-scope="scope">
+          <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="180px" align="center" label="Date">
-        <template slot-scope="{row}">
-          <span>{{ row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+      <!-- 所属项目 -->
+      <el-table-column label="所属项目">
+        <template slot-scope="scope">
+          <span>{{ scope.row.c1Name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="120px" align="center" label="Author">
-        <template slot-scope="{row}">
-          <span>{{ row.author }}</span>
+      <!-- 所属课程 -->
+      <el-table-column label="所属课程">
+        <template slot-scope="scope">
+          <span>{{ scope.row.c2Name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="100px" label="Importance">
-        <template slot-scope="{row}">
-          <svg-icon v-for="n in + row.importance" :key="n" icon-class="star" class="meta-item__icon" />
+      <!-- 所属类型 -->
+      <el-table-column label="所属类型">
+        <template slot-scope="scope">
+          <span>{{ scope.row.c3Name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column class-name="status-col" label="Status" width="110">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
-          </el-tag>
+      <!-- 排序（第几个要过的list） -->
+      <el-table-column label="排序（第几个要过的list）">
+        <template slot-scope="scope">
+          <span>{{ scope.row.sort }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column min-width="300px" label="Title">
-        <template slot-scope="{row}">
-          <template v-if="row.edit">
-            <el-input v-model="row.title" class="edit-input" size="small" />
-            <el-button class="cancel-btn" size="small" icon="el-icon-refresh" type="warning" @click="cancelEdit(row)">
-              cancel
-            </el-button>
-          </template>
-          <span v-else>{{ row.title }}</span>
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" icon="el-icon-edit" size="small" @click="handleUpdata(scope.row)">编辑</el-button>
+          <el-button type="text" icon="el-icon-delete" size="small" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="Actions" width="120">
-        <template slot-scope="{row}">
-          <el-button v-if="row.edit" type="success" size="small" icon="el-icon-circle-check-outline"
-            @click="confirmEdit(row)">
-            Ok
-          </el-button>
-          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click="row.edit=!row.edit">
-            Edit
-          </el-button>
-        </template>
-      </el-table-column>
     </el-table>
-  </div>
+    <pagination v-show="page.total > 0" :total="page.total" :page.sync="page.pageNum" :limit.sync="page.pageSize"
+      @pagination="onLoad" />
+
+    <!-- 添加 -->
+    <el-drawer ref="detailDrawer" :title="isEditTitle" :visible.sync="adddrawer" :destroy-on-close="destroyOnClose"
+      direction="rtl" :append-to-body="appendToBody" size="80%" @close="closedrawer">
+      <word-add @closeView="closeView" :select="select1" :typeDrawer="type" :frequencyList="frequencyList">
+      </word-add>
+    </el-drawer>
+
+    <!-- 编辑 -->
+    <el-drawer ref="detailDrawer2" :title="isEditTitle2" :visible.sync="editdrawer" @close="closedrawer"
+      :destroy-on-close="destroyOnClose" direction="rtl" :append-to-body="appendToBody" size="80%">
+      <word-edit @closeView="closeView" :select="select1" :typeDrawer="type" :frequencyList="frequencyList"
+        :id="wordId"></word-edit>
+    </el-drawer>
+
+  </basic-container>
+  <!-- </div> -->
 </template>
 
 <script>
-// import { fetchList } from '@/api/list'
 
+import { getCategoryList } from '@/api/word'
+import { getList, listDele } from '@/api/list'
+import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+import WordAdd from "./components/add";
+import WordEdit from "./components/edit";
 export default {
-  name: 'InlineEditTable',
+  name: 'ComplexTable',
+  components: { Pagination, WordAdd, WordEdit },
   filters: {
-    statusFilter (status) {
-      const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
-      }
-      return statusMap[status]
-    }
+
   },
   data () {
     return {
-      list: null,
-      listLoading: true,
-      listQuery: {
-        page: 1,
-        limit: 10
-      }
+      size: 'mini',
+      //下拉选
+      select1: [],
+      select2: [],
+      select3: [],
+      frequencyList: [//出现频率
+        {
+          name: '默认',
+          val: 0
+        },
+        {
+          name: '最低',
+          val: 1
+        },
+        {
+          name: '低',
+          val: 2
+        },
+        {
+          name: '中',
+          val: 3
+        },
+        {
+          name: '高',
+          val: 4
+        },
+        {
+          name: '最高',
+          val: 5
+        },
+      ],
+
+
+      //参数
+      query: {
+        search: "",
+        c1: "",
+        c2: "",
+        c3: ""
+      },
+      data: [], //列表
+      page: {
+        pageSize: 10,
+        pageNum: 1,
+        total: 0
+      },
+
+
+      // 添加
+      adddrawer: false,
+      appendToBody: true,
+      destroyOnClose: true,
+      isEditTitle: '添加单词',
+      type: 0,
+
+      editdrawer: false,
+      wordId: '',
+      isEditTitle2: "编辑单词",
+
+
+
     }
+  },
+  computed: {
+
   },
   created () {
-    this.getList()
+    this.onLoad()
+    this._getCategoryList("")
   },
   methods: {
-    async getList () {
-      // this.listLoading = true
-      // const { data } = await fetchList(this.listQuery)
-      // const items = data.items
-      // this.list = items.map(v => {
-      //   this.$set(v, 'edit', false) // https://vuejs.org/v2/guide/reactivity.html
-      //   v.originalTitle = v.title //  will be used when user click the cancel botton
-      //   return v
-      // })
-      // this.listLoading = false
+    //加载列表
+    onLoad () {
+      getList(
+        this.page.pageNum,
+        this.page.pageSize,
+        Object.assign({}, this.query)
+      ).then(res => {
+        const data = res.data;
+        this.page.total = data.totalNum;
+        this.data = data.content;
+
+      });
     },
-    cancelEdit (row) {
-      row.title = row.originalTitle
-      row.edit = false
-      this.$message({
-        message: 'The title has been restored to the original value',
-        type: 'warning'
+    //查询
+    searchChange () {
+      this.page.pageNum = 1;
+      this.onLoad();
+    },
+
+    //删除
+    handleDelete (row) {
+      this.$confirm("确定将选择数据删除?", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          return listDele(row.id)
+        })
+        .then(() => {
+          this.data = []
+          this.onLoad();
+          this.$message({
+            type: "success",
+            message: "操作成功!"
+          });
+        });
+    },
+
+
+
+    // 类别选择框选择框
+    _getCategoryList (code) {
+      getCategoryList(code).then((res) => {
+        this.select1 = res.data
       })
     },
-    confirmEdit (row) {
-      row.edit = false
-      row.originalTitle = row.title
-      this.$message({
-        message: 'The title has been edited',
-        type: 'success'
+    changeSelect1 (val) {
+      this.query.c1 = val
+      this.query.c2 = ''
+      this.query.c3 = ''
+      this.select2 = []
+      this.select3 = []
+      getCategoryList(val).then((res) => {
+        this.select2 = res.data
       })
+    },
+    changeSelect2 (val) {
+
+      this.query.c2 = val
+      this.query.c3 = ''
+      this.select3 = []
+      getCategoryList(val).then((res) => {
+        this.select3 = res.data
+      })
+    },
+
+
+    // 添加
+    handleAdd () {
+
+      this.adddrawer = true;
+    },
+    // 关闭弹框
+    closeView () {
+      this.$refs.detailDrawer.closeDrawer();
+      this.adddrawer = false;
+      this.onLoad()
+    },
+
+
+
+
+
+    //编辑单词
+    handleUpdata (item) {
+      this.editdrawer = true;
+      this.wordId = item.id
+    },
+    // 关闭弹框
+    closeView2 () {
+      this.$refs.detailDrawer2.closeDrawer();
+      this.editdrawer = false;
+      this.onLoad()
+    },
+
+    closedrawer () {
+      this.onLoad()
     }
-  }
+
+
+  },
 }
 </script>
-
-<style scoped>
-.edit-input {
-  padding-right: 100px;
-}
-.cancel-btn {
-  position: absolute;
-  right: 15px;
-  top: 10px;
-}
-</style>

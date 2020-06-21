@@ -12,15 +12,15 @@ const listRouter = {
     icon: "component"
   },
   children: [
-    {
-      path: "entry",
-      component: () => import("@/views/list/entry"),
-      name: "ListEnty",
-      meta: {
-        title: "-List录入",
-        roles: ["admin", "editor"]
-      }
-    },
+    // {
+    //   path: "entry",
+    //   component: () => import("@/views/list/entry"),
+    //   name: "ListEnty",
+    //   meta: {
+    //     title: "-List录入",
+    //     roles: ["admin", "editor"]
+    //   }
+    // },
     {
       path: "entryauto",
       component: () => import("@/views/list/entryauto"),
@@ -45,7 +45,7 @@ const listRouter = {
       name: "ListRecord",
       meta: {
         title: "测试记录",
-        roles: ["admin", "editor"]
+        roles: ["admin", "teacher", "editor"]
       }
     },
     {
@@ -54,7 +54,7 @@ const listRouter = {
       name: "ListCensus",
       meta: {
         title: "测试统计",
-        roles: ["admin", "editor"]
+        roles: ["admin", "teacher", "editor"]
       }
     }
   ]

@@ -130,20 +130,20 @@
 
     <!-- 添加 -->
     <el-drawer ref="detailDrawer" :title="isEditTitle" :visible.sync="adddrawer" :destroy-on-close="destroyOnClose"
-      direction="rtl" :append-to-body="appendToBody" size="80%">
+      direction="rtl" @close="closedrawer" :append-to-body="appendToBody" size="80%">
       <word-add @closeView="closeView" :kind="kind" :tree="tree" :select="select1" :typeDrawer="type"
         :frequencyList="frequencyList" :fileUploadList="fileUploadList"></word-add>
     </el-drawer>
 
     <!-- 编辑 -->
     <el-drawer ref="detailDrawer2" :title="isEditTitle2" :visible.sync="editdrawer" :destroy-on-close="destroyOnClose"
-      direction="rtl" :append-to-body="appendToBody" size="80%">
+      direction="rtl" @close="closedrawer" :append-to-body="appendToBody" size="80%">
       <word-edit @closeView="closeView" :kind="kind" :tree="tree" :select="select1" :typeDrawer="type"
         :frequencyList="frequencyList" :fileUploadList="fileUploadList" :wordId="wordId"></word-edit>
     </el-drawer>
 
     <!-- 选择分类 -->
-    <el-dialog title="选择分类" :destroy-on-close="destroyOnClose" :visible.sync="uploadShow" append-to-body width="60%">
+    <el-dialog title="导入单词" :destroy-on-close="destroyOnClose" :visible.sync="uploadShow" append-to-body width="60%">
       <el-row style="margin-top:20px;padding-bottom:40px;">
         <el-col :span="24">
           <el-form :inline="true" :model="query" class="demo-form-inline">
@@ -171,8 +171,8 @@
               </el-select>
             </el-form-item>
 
-            <el-upload class="upload-demo" ref="upload" :limit="1" :data="uploadData" :action="url" :headers="headers"
-              :auto-upload="false">
+            <el-upload class="upload-demo" :on-success="uploadSuccess" ref="upload" :limit="1" :data="uploadData"
+              :action="url" :headers="headers" :auto-upload="false">
               <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
               <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
 
@@ -422,6 +422,24 @@ export default {
       this.$refs.upload.submit();
     },
 
+    uploadSuccess (res) {
+
+      if (res.result != 200) {
+        this.$message({
+          message: res.msg || 'Error',
+          type: 'error',
+          duration: 5 * 1000
+        })
+        this.$refs.upload.clearFiles()
+      } else {
+        this.$message({
+          message: "上传成功！！！",
+          type: 'success',
+          duration: 5 * 1000
+        })
+      }
+    },
+
 
 
     //编辑单词
@@ -436,6 +454,10 @@ export default {
       this.$refs.detailDrawer2.closeDrawer();
       this.editdrawer = false;
     },
+
+    closedrawer () {
+      this.onLoad()
+    }
 
 
 
