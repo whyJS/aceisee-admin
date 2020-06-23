@@ -247,7 +247,18 @@ export default {
     },
     //新增
     handleAdd () {
-      addCat(this.form).then((res) => {
+      let obj = Object.assign({}, this.form)
+      if (this.c1 == "") {
+        this.$message({
+          type: "error",
+          message: "请选择所属项目!"
+        });
+        return
+      }
+      if (this.form.pCode == '') {
+        obj.pCode = this.c1
+      }
+      addCat(obj).then((res) => {
         console.log(res)
         this.data = [];
         this.onLoad();
@@ -296,6 +307,7 @@ export default {
     _getCategoryList (code) {
       getCategoryList(code).then((res) => {
         this.select1 = res.data
+
       })
     },
     changeSelect1 (val) {
