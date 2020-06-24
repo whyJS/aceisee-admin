@@ -331,7 +331,7 @@
                 <el-col :span="1">&nbsp; </el-col>
                 <el-col :span="23">
                   <el-checkbox @change="treeChange3(i1,i2,i3)" v-model="treeList[i1].children[i2].children[i3].isShow"
-                    v-for="(c3,i3) in c1.children" :key="i3" :label="c3.code">
+                    v-for="(c3,i3) in c2.children" :key="i3" :label="c3.code">
                     {{c3.name}}
                   </el-checkbox>
                 </el-col>
